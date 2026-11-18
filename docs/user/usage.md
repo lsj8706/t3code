@@ -150,6 +150,8 @@ current model's limits without leaving the conversation. The result opens above 
 closes when you dismiss it or send your next message. It uses the same snapshot as **Usage → Limits**, so it does not run the agent or refresh
 anything. The command is offered only for providers that appear under **Usage → Limits**.
 
+On web and desktop, hover over or focus **Usage** at the bottom of the sidebar for a quick view of each provider’s remaining limits. Click it to open the full usage page.
+
 To keep them in view on web and desktop, turn on **Usage limits** in **Settings → Appearance → Thread details**, or right-click the thread details card.
 The bottom of the thread details card then shows how much is left in each limit window of the
 current provider account. Some windows, such as a weekly Opus limit, count only one model. Hover a

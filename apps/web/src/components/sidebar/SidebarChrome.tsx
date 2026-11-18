@@ -1,4 +1,4 @@
-import { ArrowLeftIcon, ArrowRightIcon, ChartNoAxesColumnIcon, SettingsIcon } from "lucide-react";
+import { ArrowLeftIcon, ArrowRightIcon, SettingsIcon } from "lucide-react";
 import type { ReactNode } from "react";
 import { T, useGT } from "gt-react";
 import { memo } from "react";
@@ -37,6 +37,7 @@ import { readPullRequestListPreferences } from "../pullRequest/pullRequestListPr
 import { readIssueListPreferences } from "../issue/issueListPreferences";
 import { IssueGlyph } from "../issue/issuePresentation";
 import { isSidebarUtilityPage, useNavigateToMainApp } from "./mainAppLocation";
+import { SidebarUsageButton } from "./SidebarUsageButton";
 import { SidebarThreadUndoNotice } from "./SidebarThreadUndoNotice";
 import { SidebarProviderUpdatePill } from "./SidebarProviderUpdatePill";
 import { SidebarUpdateArchitectureWarning, SidebarUpdatePill } from "./SidebarUpdatePill";
@@ -300,11 +301,7 @@ const SidebarUtilityMenu = memo(function SidebarUtilityMenu() {
               onClick={handleIssuesClick}
             />
           ) : null}
-          <SidebarUtilityItem
-            icon={<ChartNoAxesColumnIcon />}
-            label={gt("Usage")}
-            onClick={handleUsageClick}
-          />
+          <SidebarUsageButton onClick={handleUsageClick} />
         </>
       )}
       <SidebarThreadUndoNotice />
