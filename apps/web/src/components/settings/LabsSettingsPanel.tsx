@@ -40,9 +40,13 @@ function BoringSidebarRow() {
   return (
     <SettingsRow
       {...searchableSetting("boring-sidebar")}
-      description={gt(
-        "Group sidebar threads into project folders. Pinned threads stay on top, and Snoozed and Settled stay below the folders.",
-      )}
+      description={
+        settings.boringSidebarEnabled && settings.worktreeSidebarEnabled
+          ? undefined
+          : gt(
+              "Group sidebar threads into project folders. Pinned threads stay on top, and Snoozed and Settled stay below the folders.",
+            )
+      }
       control={
         <Switch
           checked={settings.boringSidebarEnabled}
@@ -53,6 +57,20 @@ function BoringSidebarRow() {
     >
       {settings.boringSidebarEnabled ? (
         <div className="mt-2 mb-2 border-l-2 border-border/60 ps-3">
+          <SettingsRow
+            {...searchableSetting("worktree-sidebar")}
+            className="px-0 py-2 sm:px-0"
+            description={gt("Keep a folder for each checkout and start threads in that directory.")}
+            control={
+              <Switch
+                checked={settings.worktreeSidebarEnabled}
+                onCheckedChange={(checked) =>
+                  updateSettings({ worktreeSidebarEnabled: Boolean(checked) })
+                }
+                aria-label={gt("Group by worktree")}
+              />
+            }
+          />
           <BoringSidebarMultilineRow />
         </div>
       ) : null}

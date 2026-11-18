@@ -16,6 +16,8 @@ import { useEnvironmentShellHasSnapshot } from "../state/shell";
 import { useAtomCommand } from "../state/use-atom-command";
 import { useOrchestrationCommand } from "../state/use-orchestration-command";
 import { reportProjectFailure } from "./useProjectGroupUpdate";
+import { usesWorktreeFolders, worktreeFolderDraftOptions } from "../sidebarWorktrees";
+import { getClientSettings } from "./useSettings";
 import { useNewThreadHandler } from "./useHandleNewThread";
 
 /**
@@ -94,7 +96,12 @@ export function useOpenLocalWorkspace() {
             input: { projectId: projectRef.projectId, archived: false },
           }).then((result) => reportProjectFailure(m(msg("Failed to unarchive project")), result));
         }
-        return openThread(projectRef);
+        return usesWorktreeFolders(getClientSettings())
+          ? openThread(
+              projectRef,
+              worktreeFolderDraftOptions(projectRef.environmentId, request.workspaceRoot),
+            )
+          : openThread(projectRef);
       },
     });
 

@@ -114,7 +114,8 @@ import {
   copyPromptLink,
   promptLinkRepositoryOf,
 } from "./promptLinks/copyPromptLink";
-import { useClientSettings } from "../hooks/useSettings";
+import { getClientSettings, useClientSettings } from "../hooks/useSettings";
+import { usesWorktreeFolders, worktreeFolderDraftOptions } from "../sidebarWorktrees";
 import { useStableCallback } from "../hooks/useStableCallback";
 import { readLocalApi } from "../localApi";
 import { configuredHostedAppUrl } from "../hostedPairing";
@@ -1994,6 +1995,9 @@ function OpenCommandPaletteDialog(props: {
     const cwd = resolveProjectPathForDispatch(rawCwd, input.currentProjectCwd);
     if (cwd.length === 0) return;
 
+    const checkoutOptions = usesWorktreeFolders(getClientSettings())
+      ? worktreeFolderDraftOptions(input.environmentId, cwd)
+      : undefined;
     const existing = findProjectByPath(
       projects.filter((project) => project.environmentId === input.environmentId),
       cwd,
@@ -2007,7 +2011,13 @@ function OpenCommandPaletteDialog(props: {
         }).then((result) => reportProjectFailure(gt("Failed to unarchive project"), result));
       }
       const latestThread = getLatestThreadForProject(
-        threads.filter((thread) => thread.environmentId === existing.environmentId),
+        threads.filter(
+          (thread) =>
+            thread.environmentId === existing.environmentId &&
+            (!checkoutOptions ||
+              !thread.worktreePath ||
+              findProjectByPath([existing], thread.worktreePath) !== undefined),
+        ),
         existing.id,
         clientSettings.sidebarThreadSortOrder,
       );
@@ -2020,7 +2030,7 @@ function OpenCommandPaletteDialog(props: {
         });
       } else {
         const navigationResult = await settlePromise(() =>
-          handleNewThread(scopeProjectRef(existing.environmentId, existing.id)),
+          handleNewThread(scopeProjectRef(existing.environmentId, existing.id), checkoutOptions),
         );
         if (navigationResult._tag === "Failure") {
           const error = squashAtomCommandFailure(navigationResult);
@@ -2074,7 +2084,7 @@ function OpenCommandPaletteDialog(props: {
     }
 
     const navigationResult = await settlePromise(() =>
-      handleNewThread(scopeProjectRef(input.environmentId, projectId)),
+      handleNewThread(scopeProjectRef(input.environmentId, projectId), checkoutOptions),
     );
     if (navigationResult._tag === "Failure") {
       const error = squashAtomCommandFailure(navigationResult);

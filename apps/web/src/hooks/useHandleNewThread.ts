@@ -99,6 +99,7 @@ export function createNewThreadHandler(router: AnyRouter) {
       worktreePath?: string | null;
       envMode?: DraftThreadEnvMode;
       startFromOrigin?: boolean;
+      draftProjectKey?: string;
       replace?: boolean;
       /** Composer text for the draft, set before it shows. A draft with user text keeps it. */
       prompt?: string;
@@ -230,9 +231,11 @@ export function createNewThreadHandler(router: AnyRouter) {
           ) > 0,
       });
     };
-    const logicalProjectKey = project
-      ? deriveLogicalProjectKeyFromSettings(project, projectGroupingSettings)
-      : scopedProjectKey(projectRef);
+    const logicalProjectKey =
+      options?.draftProjectKey ??
+      (project
+        ? deriveLogicalProjectKeyFromSettings(project, projectGroupingSettings)
+        : scopedProjectKey(projectRef));
     const hasBranchOption = options?.branch !== undefined;
     const hasWorktreePathOption = options?.worktreePath !== undefined;
     const hasEnvModeOption = options?.envMode !== undefined;

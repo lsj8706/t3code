@@ -494,6 +494,13 @@ export const SETTINGS_SEARCH_ITEMS = [
     searchTerms: [msg("beta folders project tree classic sidebar")],
   },
   {
+    id: "worktree-sidebar",
+    title: msg("Group by worktree"),
+    to: "/settings/labs",
+    targetId: "boring-sidebar",
+    searchTerms: [msg("Worktree")],
+  },
+  {
     id: "boring-sidebar-multiline",
     title: msg("Two-line folder rows"),
     to: "/settings/labs",

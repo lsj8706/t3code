@@ -8522,6 +8522,8 @@
   "45fa271ea0e1ac8e": "Beta",
   "3a678332fc7142f7": "Agrupa los hilos de la barra lateral en carpetas de proyecto. Los hilos fijados quedan arriba, y Pospuestos y Resueltos quedan debajo de las carpetas.",
   "e4e91d155cb6a9b4": "Barra lateral simple (agrupar por proyecto)",
+  "b96031f1fdcd6a42": "Mantén una carpeta por cada copia de trabajo e inicia los hilos en ese directorio.",
+  "e537fb4d5831006f": "Agrupar por árbol de trabajo",
   "f079556d67367fe7": "Muestra los hilos de las carpetas en dos líneas: el título y, debajo, la rama, la pull request y el agente.",
   "ac1e5c94d1ad3c6a": "Filas de carpeta en dos líneas",
   "9ae293971d93c819": "Comparte un hilo con un invitado que lo ve en directo en un navegador y envía mensajes que tú apruebas. Inicia sesión en T3 Connect para usar enlaces de invitado.",

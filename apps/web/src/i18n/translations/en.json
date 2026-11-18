@@ -8532,6 +8532,8 @@
   "45fa271ea0e1ac8e": "Beta",
   "3a678332fc7142f7": "Group sidebar threads into project folders. Pinned threads stay on top, and Snoozed and Settled stay below the folders.",
   "e4e91d155cb6a9b4": "Boring sidebar (group by project)",
+  "b96031f1fdcd6a42": "Keep a folder for each checkout and start threads in that directory.",
+  "e537fb4d5831006f": "Group by worktree",
   "f079556d67367fe7": "Show folder threads on two lines: the title, then the branch, pull request, and agent.",
   "ac1e5c94d1ad3c6a": "Two-line folder rows",
   "9ae293971d93c819": "Share a thread with a guest who watches it live in a browser and sends messages you approve. Sign in to T3 Connect to use guest links.",

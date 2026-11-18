@@ -8523,6 +8523,8 @@
   "45fa271ea0e1ac8e": "Bêta",
   "3a678332fc7142f7": "Regroupe les fils de la barre latérale dans des dossiers de projet. Les fils épinglés restent en haut, les fils reportés et clos restent sous les dossiers.",
   "e4e91d155cb6a9b4": "Barre latérale classique (regrouper par projet)",
+  "b96031f1fdcd6a42": "Gardez un dossier par copie de travail et démarrez les fils dans ce répertoire.",
+  "e537fb4d5831006f": "Grouper par arbre de travail",
   "f079556d67367fe7": "Affiche les fils des dossiers sur deux lignes : le titre, puis la branche, la pull request et l’agent.",
   "ac1e5c94d1ad3c6a": "Lignes de dossier sur deux lignes",
   "9ae293971d93c819": "Partagez un fil avec un invité qui le suit en direct dans un navigateur et envoie des messages que vous approuvez. Connectez-vous à T3 Connect pour utiliser les liens invités.",

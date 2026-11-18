@@ -37,6 +37,7 @@ import {
   resolveSidebarFolderDot,
   sidebarFolderExpansionKeys,
 } from "./Sidebar.logic";
+import { groupSidebarThreadsByWorktree, worktreeFolderDraftOptions } from "../sidebarWorktrees";
 import { scopeThreadRef, scopedThreadKey } from "@t3tools/client-runtime/environment";
 import {
   sortActiveThreadsByOrderKey,
@@ -1633,6 +1634,84 @@ describe("groupSidebarThreadsByProject", () => {
       { projectKey: "t3code", threads: ["a", "b"] },
       { projectKey: "fleet", threads: [] },
     ]);
+  });
+});
+
+it("groups chats by checkout path across registered projects, branches and environments", () => {
+  const repositoryIdentity = {
+    canonicalKey: "github.com/org/repo",
+    locator: {
+      source: "git-remote" as const,
+      remoteName: "origin",
+      remoteUrl: "https://github.com/org/repo",
+    },
+  };
+  const main = makeProject({ workspaceRoot: "/src/repo", repositoryIdentity });
+  const linked = makeProject({
+    id: ProjectId.make("linked"),
+    title: "repo_2",
+    workspaceRoot: "/src/repo_2",
+    repositoryIdentity,
+  });
+  const empty = makeProject({ id: ProjectId.make("empty"), workspaceRoot: "/src/repo_3" });
+  const remote = { ...linked, environmentId: EnvironmentId.make("remote") };
+  const thread = (id: string, project: Project, worktreePath: string | null, branch: string) =>
+    makeThread({
+      id: ThreadId.make(id),
+      environmentId: project.environmentId,
+      projectId: project.id,
+      worktreePath,
+      branch,
+    });
+  const folders = groupSidebarThreadsByWorktree(
+    [main, linked, empty, remote],
+    [
+      thread("root", main, null, "main"),
+      thread("cross-project", main, "/src/repo_2/", "before-switch"),
+      thread("local", linked, "", "after-switch"),
+      thread("remote", remote, null, "main"),
+      thread("unregistered", main, "/trees/feature", "feature"),
+    ],
+  );
+  expect(
+    folders.map(({ group, threads }) => [
+      group.environmentId,
+      group.worktreePath ?? group.workspaceRoot,
+      threads.map((t) => t.id),
+    ]),
+  ).toEqual([
+    [main.environmentId, main.workspaceRoot, ["root"]],
+    [linked.environmentId, linked.workspaceRoot, ["cross-project", "local"]],
+    [empty.environmentId, empty.workspaceRoot, []],
+    [remote.environmentId, remote.workspaceRoot, ["remote"]],
+    [main.environmentId, "/trees/feature", ["unregistered"]],
+  ]);
+  expect(new Set(folders.map(({ group }) => group.projectKey)).size).toBe(5);
+  const registered = folders[1]!.group;
+  const inferred = folders[4]!.group;
+  expect(registered.id).toBe(linked.id);
+  expect(inferred.id).toBe(main.id);
+  expect(
+    worktreeFolderDraftOptions(
+      registered.environmentId,
+      registered.workspaceRoot,
+      registered.worktreePath,
+    ),
+  ).toMatchObject({
+    envMode: "local",
+    worktreePath: null,
+    branch: null,
+  });
+  expect(
+    worktreeFolderDraftOptions(
+      inferred.environmentId,
+      inferred.workspaceRoot,
+      inferred.worktreePath,
+    ),
+  ).toMatchObject({
+    envMode: "worktree",
+    worktreePath: "/trees/feature",
+    branch: null,
   });
 });
 

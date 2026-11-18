@@ -160,6 +160,12 @@ Pinned threads stay above the folders, and Snoozed and Settled stay below them. 
 can drag a thread onto the composer to mention it, but not within the sidebar, and the Working
 section is off. Each device keeps its own choice.
 
+To reuse existing checkouts, enable **Group by worktree** under the same Labs setting.
+Use **Add project** to register each folder you want to keep, including linked Git worktrees.
+Each folder stays in the sidebar when empty. Its pen button starts a thread in that checkout.
+Threads stay with their directory when you switch branches. Right-click a folder and choose
+**Rename** to save a display name on this client.
+
 ## Settle finished work
 
 Choose **Settle thread** from its menu to move finished work out of the active list
