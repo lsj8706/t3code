@@ -299,7 +299,11 @@ earlier messages, and the thread marks where it began with **New session**.
 Earlier messages and diffs stay in the thread. Dismiss the notice above the
 composer to keep the current session instead.
 
-On web and desktop, turn on **Context window** in **Settings → Appearance →
+On web and desktop, a ring to the left of the model picker shows how much of the context
+window is in use once the provider reports its size and usage. Hover or focus the ring
+to see the percentage remaining and the token counts.
+
+Turn on **Context window** in **Settings → Appearance →
 Thread details** to see context usage in the thread details card. It appears
 once the provider reports usage.
 

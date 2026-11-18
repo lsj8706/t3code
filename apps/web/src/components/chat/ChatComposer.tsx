@@ -1,3 +1,4 @@
+import type { ContextWindowSnapshot } from "@t3tools/client-runtime/state/context-window";
 import { copySnapshot } from "./copySnapshot";
 import { VoiceInputSetup } from "./VoiceInputSetup";
 import { useComposerTypingGuard } from "./useComposerTypingGuard";
@@ -358,6 +359,7 @@ export interface ChatComposerHandle {
 }
 
 export interface ChatComposerProps {
+  contextWindow: ContextWindowSnapshot | null;
   composerDraftTarget: ScopedThreadRef | DraftId;
   environmentId: EnvironmentId;
   canOperateThread: boolean;
@@ -2503,6 +2505,7 @@ export const ChatComposer = memo(function ChatComposer(props: ChatComposerProps)
       : expandedControlsIconOnlyBlockCount;
   const composerControls = (
     <ComposerControlsBar
+      contextWindow={props.contextWindow}
       environmentId={environmentId}
       workspaceCwd={gitCwd}
       routeKind={routeKind}

@@ -3668,6 +3668,11 @@ export default function ChatView(props: ChatViewProps) {
                             ) : null}
                             {!composerMounted ? null : (
                               <ChatComposer
+                                contextWindow={
+                                  isServerThread && pendingHandoff === null
+                                    ? activeContextWindow
+                                    : null
+                                }
                                 canOperateThread={canOperateThread}
                                 reportedModelSelection={reportedModelSelection}
                                 multipleModelSelections={multipleModelSelections}
