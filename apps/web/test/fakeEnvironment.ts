@@ -52,6 +52,7 @@ import * as Queue from "effect/Queue";
 import type * as Scope from "effect/Scope";
 import * as Schema from "effect/Schema";
 import * as Stream from "effect/Stream";
+import * as SubscriptionRef from "effect/SubscriptionRef";
 import { RpcSchema } from "effect/rpc";
 
 export const ENVIRONMENT_ID = EnvironmentId.make("environment-render");
@@ -126,12 +127,12 @@ const makeServerConfig = (providers: ReadonlyArray<unknown>): ServerConfig => ({
   }),
   keybindings: DEFAULT_RESOLVED_KEYBINDINGS,
 });
-let baseServerConfig = makeServerConfig([CODEX_PROVIDER]);
-// A server only leaves threads out of the shell when it serves their families.
-const serverConfig = (): ServerConfig =>
-  threads.some((thread) => thread.olderSettled)
-    ? { ...baseServerConfig, shellThreadFamilies: true }
-    : baseServerConfig;
+// A connection can outlive a test mount, so existing subscribers need each fixture's config too.
+const serverConfig = Effect.runSync(SubscriptionRef.make(makeServerConfig([CODEX_PROVIDER])));
+const subscribeServerConfig = () =>
+  SubscriptionRef.changes(serverConfig).pipe(
+    Stream.map((config) => ({ version: 1 as const, type: "snapshot" as const, config })),
+  );
 
 const project: OrchestrationProjectShell = {
   id: PROJECT_ID,
@@ -507,8 +508,7 @@ const handlers: Record<string, (input: never) => unknown> = {
         if (vcsStatusSubscriber === queue) vcsStatusSubscriber = null;
       };
     }),
-  [WS_METHODS.subscribeServerConfig]: () =>
-    subscribe([{ version: 1 as const, type: "snapshot" as const, config: serverConfig() }]),
+  [WS_METHODS.subscribeServerConfig]: subscribeServerConfig,
 };
 
 // Unanswered calls stay pending, like a server that has not replied yet.
@@ -523,9 +523,8 @@ const client = new Proxy(handlers, {
 
 const session: EnvironmentConnectionLease["session"] = {
   client: client as unknown as WsRpcProtocolClient,
-  initialConfig: Effect.sync(serverConfig),
-  subscribeServerConfig: () =>
-    subscribe([{ version: 1 as const, type: "snapshot" as const, config: serverConfig() }]),
+  initialConfig: SubscriptionRef.get(serverConfig),
+  subscribeServerConfig,
   ready: Effect.void,
   probe: Effect.void,
   inboundFrames: Effect.succeed(0),
@@ -572,10 +571,13 @@ export function installFakeEnvironment(
   },
 ): Disposable {
   threads = fixtures;
-  baseServerConfig = {
-    ...makeServerConfig(options?.providers ?? [CODEX_PROVIDER]),
-    keybindings: options?.keybindings ?? DEFAULT_RESOLVED_KEYBINDINGS,
-  };
+  Effect.runSync(
+    SubscriptionRef.set(serverConfig, {
+      ...makeServerConfig(options?.providers ?? [CODEX_PROVIDER]),
+      keybindings: options?.keybindings ?? DEFAULT_RESOLVED_KEYBINDINGS,
+      ...(fixtures.some((thread) => thread.olderSettled) ? { shellThreadFamilies: true } : {}),
+    }),
+  );
   dispatched = [];
   acceptCommands = options?.acceptCommands === true;
   projects = [
@@ -608,7 +610,7 @@ export function installFakeEnvironment(
     [Symbol.dispose]: () => {
       globalThis.fetch = realFetch;
       threads = [];
-      baseServerConfig = makeServerConfig([CODEX_PROVIDER]);
+      Effect.runSync(SubscriptionRef.set(serverConfig, makeServerConfig([CODEX_PROVIDER])));
       dispatched = [];
       acceptCommands = false;
       projects = [project];
