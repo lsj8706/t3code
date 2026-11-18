@@ -1,7 +1,7 @@
 import type { EnvironmentThreadShell } from "@t3tools/client-runtime/state/models";
 import { scopedThreadKey, scopeThreadRef } from "@t3tools/client-runtime/environment";
 import type { ContextMenuSource } from "@t3tools/contracts";
-import { ChevronDownIcon, SquarePenIcon } from "lucide-react";
+import { ChevronDownIcon, GripVerticalIcon, SquarePenIcon } from "lucide-react";
 import { msg, T, useGT, useMessages, Var } from "gt-react";
 import { memo } from "react";
 
@@ -113,6 +113,9 @@ export const SidebarProjectFolderHeader = memo(function SidebarProjectFolderHead
           <button
             type="button"
             data-sidebar-row={rowId}
+            draggable={"worktreePath" in group}
+            data-worktree-drag-handle={"worktreePath" in group || undefined}
+            aria-keyshortcuts={"worktreePath" in group ? "Alt+ArrowUp Alt+ArrowDown" : undefined}
             aria-expanded={!collapsed}
             onClick={() => props.onToggle(group)}
             onContextMenu={(event) => {
@@ -123,9 +126,22 @@ export const SidebarProjectFolderHeader = memo(function SidebarProjectFolderHead
                 contextMenuSourceOf(event),
               );
             }}
-            className="flex h-8 w-full cursor-pointer items-center gap-2.5 rounded-(--control-radius) px-(--sidebar-row-content-inset) text-left outline-none hover:bg-sidebar-row-hover focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring"
+            className="flex h-8 w-full cursor-pointer data-worktree-drag-handle:cursor-grab items-center gap-2.5 rounded-(--control-radius) px-(--sidebar-row-content-inset) text-left outline-none hover:bg-sidebar-row-hover focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring"
           >
-            <ProjectFavicon project={group} className="size-4 shrink-0" />
+            {"worktreePath" in group ? (
+              <span className="pointer-events-none relative size-4 shrink-0">
+                <ProjectFavicon
+                  project={group}
+                  className="size-4 group-hover/project-folder:invisible"
+                />
+                <GripVerticalIcon
+                  aria-hidden
+                  className="invisible absolute inset-0 size-4 text-sidebar-muted-foreground group-hover/project-folder:visible"
+                />
+              </span>
+            ) : (
+              <ProjectFavicon project={group} className="size-4 shrink-0" />
+            )}
             <span className="min-w-0 flex-1 truncate text-sm font-medium text-sidebar-foreground/90">
               {props.displayName}
             </span>

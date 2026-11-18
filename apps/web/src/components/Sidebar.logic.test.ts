@@ -37,7 +37,11 @@ import {
   resolveSidebarFolderDot,
   sidebarFolderExpansionKeys,
 } from "./Sidebar.logic";
-import { groupSidebarThreadsByWorktree, worktreeFolderDraftOptions } from "../sidebarWorktrees";
+import {
+  groupSidebarThreadsByWorktree,
+  moveWorktreeFolder,
+  worktreeFolderDraftOptions,
+} from "../sidebarWorktrees";
 import { scopeThreadRef, scopedThreadKey } from "@t3tools/client-runtime/environment";
 import {
   sortActiveThreadsByOrderKey,
@@ -1635,6 +1639,21 @@ describe("groupSidebarThreadsByProject", () => {
       { projectKey: "fleet", threads: [] },
     ]);
   });
+});
+
+it("moves worktree folders in both directions and retains offscreen keys", () => {
+  const visible = ["main", "other", "new"];
+  const saved = ["main", "offline", "other"];
+  const down = moveWorktreeFolder(saved, visible, "main", "new");
+  expect(down).toEqual(["offline", "other", "new", "main"]);
+  expect(moveWorktreeFolder(down, ["other", "new", "main"], "main", "other")).toEqual([
+    "offline",
+    "main",
+    "other",
+    "new",
+  ]);
+  expect(moveWorktreeFolder(saved, visible, "missing", "new")).toBe(saved);
+  expect(moveWorktreeFolder([], visible, "new", "main")).toEqual(["new", "main", "other"]);
 });
 
 it("groups chats by checkout path across registered projects, branches and environments", () => {

@@ -162,6 +162,8 @@ section is off. Each device keeps its own choice.
 
 To reuse existing checkouts, enable **Group by worktree** under the same Labs setting.
 Use **Add project** to register each folder you want to keep, including linked Git worktrees.
+Drag a folder heading onto another folder to change their order. With a heading focused,
+**Option+↑/↓** on Mac or **Alt+↑/↓** also moves it. This client remembers your order.
 Each folder stays in the sidebar when empty. Its pen button starts a thread in that checkout.
 Threads stay with their directory when you switch branches. Right-click a folder and choose
 **Rename** to save a display name on this client.

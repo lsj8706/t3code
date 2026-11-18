@@ -64,6 +64,21 @@ export function groupSidebarThreadsByWorktree<
   );
 }
 
+export function moveWorktreeFolder(
+  saved: readonly string[],
+  visible: readonly string[],
+  source: string,
+  target: string,
+): readonly string[] {
+  if (source === target || !visible.includes(source) || !visible.includes(target)) return saved;
+  // Keep keys for filtered projects and disconnected environments when saving this view.
+  const order = [...new Set([...saved, ...visible])];
+  const targetIndex = order.indexOf(target);
+  order.splice(order.indexOf(source), 1);
+  order.splice(targetIndex, 0, source);
+  return order;
+}
+
 export function worktreeFolderDraftOptions(
   environmentId: EnvironmentId,
   workspaceRoot: string,

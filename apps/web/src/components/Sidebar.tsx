@@ -271,6 +271,7 @@ import {
   type SidebarProviderEntry,
   type SidebarSweepAction,
 } from "./sidebar/SidebarThreadRow";
+import { SidebarWorktreeSection } from "./sidebar/SidebarWorktreeSection";
 import { SidebarDraftBlock } from "./sidebar/SidebarDraftBlock";
 import {
   type SidebarFolderGroup,
@@ -279,6 +280,7 @@ import {
 } from "./sidebar/SidebarProjectFolderHeader";
 import {
   groupSidebarThreadsByWorktree,
+  moveWorktreeFolder,
   usesWorktreeFolders,
   worktreeFolderDraftOptions,
 } from "../sidebarWorktrees";
@@ -346,6 +348,7 @@ const SETTLED_SHELF_EXPANDED_KEY = "t3code:sidebar:settled-expanded";
 const SNOOZED_SHELF_EXPANDED_KEY = "t3code:sidebar:snoozed-expanded";
 const WORKING_SHELF_EXPANDED_KEY = "t3code:sidebar:working-expanded";
 
+const WORKTREE_FOLDER_ORDER = Schema.Array(Schema.String);
 const WORKTREE_FOLDER_NAMES = Schema.Record(Schema.String, Schema.String);
 
 const inboxReturns = createInboxReturnTracker();
@@ -543,14 +546,23 @@ function useSidebarThreads(input: {
   const visibleWorkingThreads = workingShelfExpanded
     ? workingThreads
     : routeThreadOnly(workingThreads, routeRowThreadKey);
+  const [worktreeOrder, setWorktreeOrder] = useLocalStorage(
+    "t3code:sidebar:worktree-order",
+    [],
+    WORKTREE_FOLDER_ORDER,
+  );
   const folders =
     input.worktreeProjects !== null
-      ? groupSidebarThreadsByWorktree(input.worktreeProjects, [
-          ...pinnedThreads,
-          ...activeThreads,
-          ...snoozedThreads,
-          ...visibleSettledThreads,
-        ])
+      ? orderItemsByPreferredIds({
+          items: groupSidebarThreadsByWorktree(input.worktreeProjects, [
+            ...pinnedThreads,
+            ...activeThreads,
+            ...snoozedThreads,
+            ...visibleSettledThreads,
+          ]),
+          preferredIds: worktreeOrder,
+          getId: (folder) => folder.group.projectKey,
+        })
       : folderGroups === null
         ? null
         : groupSidebarThreadsByProject(folderGroups, activeThreads, keepEmpty);
@@ -621,6 +633,11 @@ function useSidebarThreads(input: {
     workingShelfExpanded,
     toggleWorkingShelf: () => setWorkingShelfExpanded((value) => !value),
     projectFolders,
+    moveFolder: (source: string, target: string) => {
+      if (input.worktreeProjects === null || !projectFolders) return;
+      const visible = projectFolders.map(({ group }) => group.projectKey);
+      setWorktreeOrder((saved) => moveWorktreeFolder(saved, visible, source, target));
+    },
     toggleProjectFolder: (group: SidebarFolderGroup) => {
       const keys = folderExpansionKeys(group);
       setProjectExpanded(keys, !resolveProjectExpanded(projectExpandedById, keys));
@@ -1015,6 +1032,7 @@ export default function Sidebar({ routeReveal }: { routeReveal: SidebarRouteReve
   });
   const boringSidebarEnabled = useClientSettings((settings) => settings.boringSidebarEnabled);
   const worktreeSidebarEnabled = useClientSettings(usesWorktreeFolders);
+  const [draggedWorktree, setDraggedWorktree] = useState<string | null>(null);
   const [renamingFolderKey, setRenamingFolderKey] = useState<string | null>(null);
   const [folderNames, setFolderNames] = useLocalStorage(
     "t3code:sidebar:worktree-names",
@@ -1380,6 +1398,7 @@ export default function Sidebar({ routeReveal }: { routeReveal: SidebarRouteReve
     workingShelfExpanded,
     toggleWorkingShelf,
     projectFolders,
+    moveFolder,
     toggleProjectFolder,
     renderedSettledThreads,
     visibleSnoozedThreads,
@@ -3604,8 +3623,11 @@ export default function Sidebar({ routeReveal }: { routeReveal: SidebarRouteReve
                           continue;
                         }
                         if (projectFolders !== null && item.marker === "active-placeholder") {
-                          for (const folder of projectFolders) {
-                            items.push(
+                          const folderKeys = projectFolders.map(({ group }) => group.projectKey);
+                          const draggedIndex =
+                            draggedWorktree === null ? -1 : folderKeys.indexOf(draggedWorktree);
+                          for (const [index, folder] of projectFolders.entries()) {
+                            const rows: ReactNode[] = [
                               <SidebarProjectFolderHeader
                                 key={`project-folder:${folder.group.projectKey}`}
                                 group={folder.group}
@@ -3627,15 +3649,33 @@ export default function Sidebar({ routeReveal }: { routeReveal: SidebarRouteReve
                                 onNewThread={startThreadInProjectFolder}
                                 onContextMenu={handleProjectFolderContextMenu}
                               />,
-                            );
+                            ];
                             for (const thread of folder.threads) {
-                              items.push(
+                              rows.push(
                                 renderThreadRow(
                                   thread,
                                   sectionByThreadKey.get(threadShellKey(thread)) ?? "active",
                                   sidebarFolderRowId(folder.group.projectKey),
                                 ),
                               );
+                            }
+                            if (worktreeSidebarEnabled) {
+                              items.push(
+                                <SidebarWorktreeSection
+                                  key={folder.group.projectKey}
+                                  folderKey={folder.group.projectKey}
+                                  previousKey={folderKeys[index - 1]}
+                                  nextKey={folderKeys[index + 1]}
+                                  draggedKey={draggedWorktree}
+                                  dropAfter={draggedIndex >= 0 && draggedIndex < index}
+                                  onDragFolder={setDraggedWorktree}
+                                  onMove={moveFolder}
+                                >
+                                  {rows}
+                                </SidebarWorktreeSection>,
+                              );
+                            } else {
+                              items.push(...rows);
                             }
                           }
                           continue;
