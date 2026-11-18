@@ -139,6 +139,11 @@ export class ServerBrowserContexts {
       ],
       ignoreDefaultArgs: ["--enable-automation"],
       headless: true,
+      // The server closes its browsers as it shuts down; Playwright closing them at the signal
+      // would end their tabs' sessions first, and nothing would reopen them at the next start.
+      handleSIGINT: false,
+      handleSIGTERM: false,
+      handleSIGHUP: false,
       // Only an explicit operator opt-out disables sandboxing. Launch errors never do.
       chromiumSandbox: !sandboxDisabled(env),
     };

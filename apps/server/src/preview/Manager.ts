@@ -1,4 +1,5 @@
 import {
+  INCOGNITO_BROWSER_PROFILE_ID,
   type PreviewCloseInput,
   type PreviewEvent,
   type PreviewError,
@@ -11,8 +12,9 @@ import {
   type PreviewAdjustInput,
   FILL_PREVIEW_VIEWPORT,
   PreviewSessionLookupError,
-  type PreviewSessionSnapshot,
+  PreviewSessionSnapshot,
 } from "@t3tools/contracts";
+import { writeFileStringAtomically } from "@t3tools/shared/atomicWrite";
 import {
   isPreviewUrlNormalizationError,
   newPreviewTabId,
@@ -22,12 +24,18 @@ import * as Context from "effect/Context";
 import * as SecureRandom from "effect/crypto/SecureRandom";
 import * as DateTime from "effect/DateTime";
 import * as Effect from "effect/Effect";
+import * as FileSystem from "effect/FileSystem";
 import * as Layer from "effect/Layer";
+import * as Path from "effect/Path";
 import * as PubSub from "effect/PubSub";
+import * as Schema from "effect/Schema";
 import * as Scope from "effect/Scope";
+import * as Semaphore from "effect/Semaphore";
 import * as Stream from "effect/Stream";
 import * as SynchronizedRef from "effect/SynchronizedRef";
 import { PreviewControlRequiredError } from "@t3tools/contracts";
+
+import * as ServerConfig from "../config.ts";
 
 export class PreviewManager extends Context.Service<
   PreviewManager,
@@ -74,6 +82,8 @@ interface PreviewSessionState {
   readonly threadId: string;
   readonly tabId: string;
   readonly snapshot: PreviewSessionSnapshot;
+  /** The last page the tab loaded. A request's address can carry a one-time token the page drops. */
+  readonly loadedPage: { readonly url: string; readonly title: string } | null;
 }
 
 interface ManagerState {
@@ -81,7 +91,33 @@ interface ManagerState {
   readonly revision: number;
 }
 
-const initialState: ManagerState = { sessions: new Map(), revision: 0 };
+const SavedSessionsJson = Schema.fromJsonString(
+  Schema.Struct({ sessions: Schema.Array(PreviewSessionSnapshot) }),
+);
+const decodeSavedSessions = Schema.decodeUnknownEffect(SavedSessionsJson);
+const encodeSavedSessions = Schema.encodeSync(SavedSessionsJson);
+// Pages can rewrite their address many times a second, so saves are spaced out.
+const SAVE_DELAY = "1 second";
+
+/** A restart cannot bring back incognito storage, and reopens only tabs a user was shown. */
+const survivesRestart = (snapshot: PreviewSessionSnapshot) =>
+  snapshot.profileId !== INCOGNITO_BROWSER_PROFILE_ID && snapshot.reveal !== false;
+
+/** A restart reopens the last loaded page, or the address that failed if the tab never loaded one. */
+const savedSnapshot = ({ snapshot, loadedPage }: PreviewSessionState): PreviewSessionSnapshot => {
+  const { revealRequest: _revealRequest, ...kept } = snapshot;
+  const page =
+    loadedPage ??
+    (snapshot.navStatus._tag === "LoadFailed"
+      ? { url: snapshot.navStatus.url, title: snapshot.navStatus.title }
+      : null);
+  return {
+    ...kept,
+    navStatus: page ? { _tag: "Success", ...page } : { _tag: "Idle" },
+    canGoBack: false,
+    canGoForward: false,
+  };
+};
 
 type PreviewEventDraft = PreviewEvent extends infer Event
   ? Event extends { readonly revision: number }
@@ -129,7 +165,88 @@ const currentIsoTimestamp = DateTime.now.pipe(Effect.map(DateTime.formatIso));
 export const make = Effect.gen(function* PreviewManagerMake() {
   const random = yield* SecureRandom.SecureRandom;
   const serverEpoch = yield* random.uuidV4();
-  const stateRef = yield* SynchronizedRef.make<ManagerState>(initialState);
+  const savedSessionsPath = (yield* Path.Path).join(
+    (yield* ServerConfig.ServerConfig).stateDir,
+    "preview-sessions.json",
+  );
+  const fileServices = yield* Effect.context<FileSystem.FileSystem | Path.Path>();
+  let savedSessions = yield* (yield* FileSystem.FileSystem).readFileString(savedSessionsPath).pipe(
+    Effect.tapError((cause) =>
+      cause.reason._tag === "NotFound"
+        ? Effect.void
+        : Effect.logWarning("failed to read saved preview sessions", {
+            path: savedSessionsPath,
+            cause,
+          }),
+    ),
+    Effect.orElseSucceed(() => ""),
+  );
+  const restored = yield* decodeSavedSessions(savedSessions).pipe(
+    Effect.map(({ sessions }) => sessions),
+    Effect.tapError((cause) =>
+      savedSessions === ""
+        ? Effect.void
+        : Effect.logWarning("ignoring invalid saved preview sessions", {
+            path: savedSessionsPath,
+            cause,
+          }),
+    ),
+    Effect.orElseSucceed((): ReadonlyArray<PreviewSessionSnapshot> => []),
+  );
+  const stateRef = yield* SynchronizedRef.make<ManagerState>({
+    sessions: new Map(
+      restored.map((snapshot) => [
+        compositeKey(snapshot.threadId, snapshot.tabId),
+        {
+          threadId: snapshot.threadId,
+          tabId: snapshot.tabId,
+          snapshot,
+          loadedPage:
+            snapshot.navStatus._tag === "Success"
+              ? { url: snapshot.navStatus.url, title: snapshot.navStatus.title }
+              : null,
+        },
+      ]),
+    ),
+    revision: 0,
+  });
+  const saveLock = yield* Semaphore.make(1);
+  const saveSessions = Effect.fn("PreviewManager.saveSessions")(function* () {
+    const { sessions } = yield* SynchronizedRef.get(stateRef);
+    const contents = encodeSavedSessions({
+      sessions: [...sessions.values()]
+        .filter((session) => survivesRestart(session.snapshot))
+        .map(savedSnapshot),
+    });
+    if (contents === savedSessions) return;
+    yield* writeFileStringAtomically({ filePath: savedSessionsPath, contents }).pipe(
+      Effect.provideContext(fileServices),
+      Effect.tap(() =>
+        Effect.sync(() => {
+          savedSessions = contents;
+        }),
+      ),
+      Effect.catch((cause) => Effect.logWarning("failed to save preview sessions", { cause })),
+    );
+  }, saveLock.withPermits(1));
+  // Registered before any delayed save forks, so shutdown runs it after interrupting them.
+  yield* Effect.addFinalizer(() => saveSessions());
+  const saveScope = yield* Effect.scope;
+  let saveScheduled = false;
+  const scheduleSave = Effect.suspend(() => {
+    if (saveScheduled) return Effect.void;
+    saveScheduled = true;
+    return Effect.sleep(SAVE_DELAY).pipe(
+      Effect.andThen(
+        Effect.suspend(() => {
+          saveScheduled = false;
+          return saveSessions();
+        }),
+      ),
+      Effect.forkIn(saveScope),
+      Effect.asVoid,
+    );
+  });
   const eventsPubSub = yield* PubSub.unbounded<PreviewEvent>();
   const events: Stream.Stream<PreviewEvent> = Stream.fromPubSub(eventsPubSub);
   const beforeClose = new Set<
@@ -174,6 +291,7 @@ export const make = Effect.gen(function* PreviewManagerMake() {
             }
             const sessions = new Map(state.sessions);
             sessions.set(compositeKey(threadId, tabId), next);
+            if (next !== session) yield* scheduleSave;
             return [{ kind: "ok", result } as ModifyResult, { sessions, revision }] as readonly [
               ModifyResult,
               ManagerState,
@@ -221,7 +339,9 @@ export const make = Effect.gen(function* PreviewManagerMake() {
             threadId: input.threadId,
             tabId,
             snapshot,
+            loadedPage: null,
           });
+          yield* scheduleSave;
           input.beforePublish?.(snapshot);
           yield* PubSub.publish(eventsPubSub, {
             type: "opened",
@@ -280,7 +400,14 @@ export const make = Effect.gen(function* PreviewManagerMake() {
                 snapshot,
               };
         return {
-          next: { ...session, snapshot },
+          next: {
+            ...session,
+            snapshot,
+            loadedPage:
+              input.navStatus._tag === "Success"
+                ? { url: input.navStatus.url, title: input.navStatus.title }
+                : session.loadedPage,
+          },
           emit,
           result: undefined as void,
         };
@@ -442,7 +569,7 @@ export const make = Effect.gen(function* PreviewManagerMake() {
         return Effect.as(
           Effect.forEach(eventsToEmit, (event) => PubSub.publish(eventsPubSub, event), {
             discard: true,
-          }),
+          }).pipe(Effect.andThen(scheduleSave)),
           [undefined, { sessions, revision }] as const,
         );
       });

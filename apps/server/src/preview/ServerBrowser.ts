@@ -598,6 +598,7 @@ const make = Effect.gen(function* () {
   const closedSessions = new Set<string>();
   let hostConnectionId: string | null = null;
   let viewerResizeOrder = 0;
+  let shuttingDown = false;
 
   const contexts = new ServerBrowserContexts({
     profilesDir: NodePath.join(config.stateDir, "server-browser", "profiles"),
@@ -1034,7 +1035,8 @@ const make = Effect.gen(function* () {
     void tab.recording?.encoder.close().catch(constVoid);
     void NodeFSP.rm(downloadDir(tab), { recursive: true, force: true }).catch(constVoid);
     reportLiveTabs();
-    if (closeSession) {
+    // Shutdown closes every page; their sessions stay so the next start reopens them.
+    if (closeSession && !shuttingDown) {
       runFork(manager.close({ threadId: tab.threadId, tabId: tab.tabId }).pipe(Effect.ignore));
     }
   };
@@ -1362,20 +1364,22 @@ const make = Effect.gen(function* () {
     reportLiveTabs();
     // A desktop page navigates on its own and can finish loading before these listeners attach.
     if (desktop) void page.waitForLoadState("load").then(() => reportLoaded(tab), constVoid);
-    // Existing desktop and popup PDFs can start loading before interception attaches.
+    const status = snapshot.navStatus;
+    // Existing desktop and popup PDFs can start loading before interception attaches. A session
+    // that says a page loaded has outlived it, across a restart or a desktop tab that went away.
     if (
-      snapshot.navStatus._tag === "Loading" &&
-      ((!adopted && !desktop) || isPdfAssetUrl(snapshot.navStatus.url))
+      (status._tag === "Loading" && ((!adopted && !desktop) || isPdfAssetUrl(status.url))) ||
+      (status._tag === "Success" && !adopted && !desktop)
     ) {
       tab.loading = true;
-      const initialUrl = URL.parse(snapshot.navStatus.url);
+      const initialUrl = URL.parse(status.url);
       if (initialUrl) initialUrl.hash = "";
       tab.pendingInitialRequestUrl = initialUrl?.href ?? null;
       const options = { waitUntil: "commit", timeout: NAVIGATION_TIMEOUT_MS } as const;
       tab.initialNavigation = (
-        (desktop || adopted) && page.url() === snapshot.navStatus.url
+        (desktop || adopted) && page.url() === status.url
           ? page.reload(options)
-          : page.goto(snapshot.navStatus.url, options)
+          : page.goto(status.url, options)
       ).then(constVoid, (cause: unknown) => {
         throw ServerBrowserPage.toOperationError(cause, NAVIGATION_TIMEOUT_MS);
       });
@@ -3492,6 +3496,7 @@ const make = Effect.gen(function* () {
   );
   yield* Effect.addFinalizer(() =>
     Effect.promise(async () => {
+      shuttingDown = true;
       await contexts.close();
     }),
   );

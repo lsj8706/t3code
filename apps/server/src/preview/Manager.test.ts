@@ -1,7 +1,13 @@
 import * as NodeCrypto from "@effect/platform-node/NodeCrypto";
 import * as NodeServices from "@effect/platform-node/NodeServices";
 import { it } from "@effect/vitest";
-import { type PreviewEvent, ThreadId } from "@t3tools/contracts";
+import {
+  INCOGNITO_BROWSER_PROFILE_ID,
+  type PreviewEvent,
+  type PreviewNavStatus,
+  ThreadId,
+} from "@t3tools/contracts";
+import * as Context from "effect/Context";
 import * as Effect from "effect/Effect";
 import * as Layer from "effect/Layer";
 import * as PubSub from "effect/PubSub";
@@ -255,3 +261,87 @@ it.layer(layer)("PreviewManager", (it) => {
     }),
   );
 });
+
+const restartDependencies = ServerConfig.layerTest(process.cwd(), {
+  prefix: "t3-preview-manager-restart-",
+}).pipe(Layer.provideMerge(NodeServices.layer), Layer.merge(NodeCrypto.layer));
+
+/** One server run: the manager's scope closes when `use` returns, as it does at shutdown. */
+const serverRun = <A, E>(
+  use: (manager: PreviewManager.PreviewManager["Service"]) => Effect.Effect<A, E>,
+) =>
+  Layer.build(PreviewManager.layer).pipe(
+    Effect.flatMap((context) => use(Context.get(context, PreviewManager.PreviewManager))),
+    Effect.scoped,
+  );
+
+it.effect("a restarted server reopens each tab on the page it last loaded", () =>
+  Effect.gen(function* () {
+    const threadId = ThreadId.make("thread-restart");
+    const canvasUrl = "http://127.0.0.1:4100/";
+
+    const before = yield* serverRun((manager) =>
+      Effect.gen(function* () {
+        const report = (tabId: string, navStatus: PreviewNavStatus) =>
+          manager.reportStatus({
+            threadId,
+            tabId,
+            navStatus,
+            canGoBack: false,
+            canGoForward: false,
+          });
+        const canvas = yield* manager.open({
+          threadId,
+          url: `${canvasUrl}#token=first&project=a`,
+          profileId: "work",
+        });
+        // The page drops its token, the user switches projects, then another load starts.
+        yield* report(canvas.tabId, {
+          _tag: "Success",
+          url: `${canvasUrl}#project=a`,
+          title: "Canvas",
+        });
+        yield* report(canvas.tabId, {
+          _tag: "Success",
+          url: `${canvasUrl}#project=b`,
+          title: "Canvas",
+        });
+        yield* report(canvas.tabId, {
+          _tag: "Loading",
+          url: `${canvasUrl}#token=second&project=b`,
+          title: "",
+        });
+        const unreachable = yield* manager.open({ threadId, url: "http://localhost:5173/" });
+        yield* report(unreachable.tabId, {
+          _tag: "LoadFailed",
+          url: "http://localhost:5173/",
+          title: "",
+          code: -102,
+          description: "ERR_CONNECTION_REFUSED",
+        });
+        const closed = yield* manager.open({ threadId, url: "http://localhost:3000/" });
+        yield* manager.close({ threadId, tabId: closed.tabId });
+        yield* manager.open({ threadId, profileId: INCOGNITO_BROWSER_PROFILE_ID });
+        yield* manager.open({ threadId, runtime: "server", reveal: false });
+        return { canvas, unreachable };
+      }),
+    );
+
+    const after = yield* serverRun((manager) => manager.list({ threadId }));
+
+    expect(
+      after.sessions.map(({ tabId, navStatus, profileId }) => ({ tabId, navStatus, profileId })),
+    ).toEqual([
+      {
+        tabId: before.canvas.tabId,
+        navStatus: { _tag: "Success", url: `${canvasUrl}#project=b`, title: "Canvas" },
+        profileId: "work",
+      },
+      {
+        tabId: before.unreachable.tabId,
+        navStatus: { _tag: "Success", url: "http://localhost:5173/", title: "" },
+        profileId: undefined,
+      },
+    ]);
+  }).pipe(Effect.provide(restartDependencies)),
+);

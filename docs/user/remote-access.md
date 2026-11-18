@@ -277,6 +277,11 @@ directly. Every other device, and the desktop app for other environments,
 streams them from the host. Agents keep using them while no device is
 connected, and `localhost` addresses reach servers on the host.
 
+Tabs reopen after the environment or the desktop app restarts, each on the page
+it last loaded, with the same profile's sign-ins and site data but without its
+page history. Incognito tabs and tabs an agent kept in the background do not
+come back.
+
 The first tab downloads a headless Chrome, about 120 MB, into the T3 home. It
 is the same browser [HTML renders](html-renders.md) use, so a host downloads it
 only once. Some Linux hosts need [setup](#browser-host-setup) before it can

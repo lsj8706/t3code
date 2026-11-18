@@ -2590,6 +2590,39 @@ it.effect("a restarted server removes the previous run's downloads and keeps its
   ).pipe(Effect.provide(dependencies)),
 );
 
+it.effect("a restarted server keeps a tab's session and loads its last page again", () =>
+  Effect.gen(function* () {
+    const threadId = scope.thread.threadId;
+    const url = "http://127.0.0.1:4100/#project=a";
+    const serverRun = Layer.provideMerge(ServerBrowser.layer, Manager.layer);
+
+    const tabId = yield* Effect.gen(function* () {
+      const manager = yield* Manager.PreviewManager;
+      const events = yield* manager.subscribeEvents;
+      yield* Effect.yieldNow;
+      const opened = yield* manager.open({ threadId, runtime: "server", url });
+      let event = yield* PubSub.take(events);
+      while (event.type !== "navigated" || event.snapshot.navStatus._tag !== "Success")
+        event = yield* PubSub.take(events);
+      return opened.tabId;
+    }).pipe(Effect.provide(serverRun), Effect.scoped);
+
+    yield* Effect.gen(function* () {
+      const manager = yield* Manager.PreviewManager;
+      const browser = yield* ServerBrowser.ServerBrowser;
+      const { sessions } = yield* manager.list({ threadId });
+      expect(sessions.map((session) => [session.tabId, session.navStatus])).toEqual([
+        [tabId, { _tag: "Success", url, title: "test page" }],
+      ]);
+      expect(contexts).toHaveLength(1);
+
+      yield* browser.attachViewer(viewerInput(tabId, false));
+
+      expect(contexts[1]!.page.goto).toHaveBeenCalledWith(url, expect.anything());
+    }).pipe(Effect.provide(serverRun), Effect.scoped);
+  }).pipe(Effect.provide(dependencies)),
+);
+
 it.effect("a page's file picker goes to the controller and takes its uploaded files", () =>
   Effect.scoped(
     Effect.gen(function* () {
