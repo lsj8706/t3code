@@ -517,7 +517,7 @@ function useSidebarThreads(input: {
   // Older settled threads load in pages; the shelf lists them only as far as they are loaded.
   const olderSettledShelf = useOlderSettledShelf({
     scopes: olderSettledScopes([...serverConfigs.keys()], scopedProjectKeys),
-    expanded: settledShelfExpanded || input.worktreeProjects !== null,
+    expanded: settledShelfExpanded,
     visibleCount: settledVisibleCount,
   });
   const listedSettledThreads = settledThreads.filter(olderSettledShelf.isListed);
@@ -554,12 +554,7 @@ function useSidebarThreads(input: {
   const folders =
     input.worktreeProjects !== null
       ? orderItemsByPreferredIds({
-          items: groupSidebarThreadsByWorktree(input.worktreeProjects, [
-            ...pinnedThreads,
-            ...activeThreads,
-            ...snoozedThreads,
-            ...visibleSettledThreads,
-          ]),
+          items: groupSidebarThreadsByWorktree(input.worktreeProjects, activeThreads),
           preferredIds: worktreeOrder,
           getId: (folder) => folder.group.projectKey,
         })
@@ -586,16 +581,13 @@ function useSidebarThreads(input: {
       };
     }) ?? null;
   const folderThreads = projectFolders?.flatMap((folder) => folder.threads);
-  const orderedThreads =
-    input.worktreeProjects !== null
-      ? (folderThreads ?? EMPTY_THREADS)
-      : [
-          ...pinnedThreads,
-          ...(folderThreads ?? activeThreads),
-          ...visibleWorkingThreads,
-          ...visibleSnoozedThreads,
-          ...renderedSettledThreads,
-        ];
+  const orderedThreads = [
+    ...pinnedThreads,
+    ...(folderThreads ?? activeThreads),
+    ...visibleWorkingThreads,
+    ...visibleSnoozedThreads,
+    ...renderedSettledThreads,
+  ];
   const sectionByThreadKey = new Map<string, SidebarSection>();
   for (const [list, section] of [
     [pinnedThreads, "pinned"],
@@ -2041,18 +2033,6 @@ export default function Sidebar({ routeReveal }: { routeReveal: SidebarRouteReve
         0
     ) {
       return [];
-    }
-    if (worktreeSidebarEnabled && projectFolders) {
-      return [
-        { kind: "marker", marker: "active-placeholder" },
-        ...projectFolders.flatMap((folder) =>
-          folder.threads.map((thread) => ({
-            kind: "thread" as const,
-            key: threadShellKey(thread),
-            section: sectionByThreadKey.get(threadShellKey(thread)) ?? "active",
-          })),
-        ),
-      ];
     }
     const items: SidebarListItem[] = [{ kind: "marker", marker: "pinned-header" }];
     const pinnedRows = rowsOf(pinnedThreads, "pinned");
@@ -3614,11 +3594,7 @@ export default function Sidebar({ routeReveal }: { routeReveal: SidebarRouteReve
                       for (const item of sidebarListItems) {
                         if (item.kind === "thread") {
                           // Folders draw active rows in their own place below.
-                          if (
-                            projectFolders !== null &&
-                            (worktreeSidebarEnabled || item.section === "active")
-                          )
-                            continue;
+                          if (projectFolders !== null && item.section === "active") continue;
                           items.push(renderThreadRow(threadByKey.get(item.key)!, item.section));
                           continue;
                         }
@@ -3654,7 +3630,7 @@ export default function Sidebar({ routeReveal }: { routeReveal: SidebarRouteReve
                               rows.push(
                                 renderThreadRow(
                                   thread,
-                                  sectionByThreadKey.get(threadShellKey(thread)) ?? "active",
+                                  "active",
                                   sidebarFolderRowId(folder.group.projectKey),
                                 ),
                               );
@@ -3792,12 +3768,12 @@ export default function Sidebar({ routeReveal }: { routeReveal: SidebarRouteReve
                       }
                       return items;
                     })()}
-                    {(worktreeSidebarEnabled || settledShelfExpanded) && hiddenSettledCount > 0 ? (
+                    {settledShelfExpanded && hiddenSettledCount > 0 ? (
                       <li className="list-none">
                         <button
                           type="button"
                           data-sidebar-row="settled:more"
-                          data-sidebar-parent={worktreeSidebarEnabled ? undefined : "shelf:settled"}
+                          data-sidebar-parent="shelf:settled"
                           aria-disabled={olderSettledShelf.loading}
                           onClick={() => {
                             if (olderSettledShelf.loading) return;
