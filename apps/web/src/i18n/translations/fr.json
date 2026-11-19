@@ -9783,7 +9783,7 @@
   "4df30d44eb0b0728": "Reprend automatiquement les fils quand leurs limites d’utilisation sont réinitialisées. Vous pouvez annuler la reprise automatique dans chaque fil.",
   "0769f91ca46e3003": "Reporte les fils jusqu’à la réinitialisation de leurs limites d’utilisation. Activez la reprise automatique pour que l’agent continue après la réinitialisation.",
   "7c27e91e75cce7a3": "Clôture automatique",
-  "cf6c5aa9b63957e6": "Clôt un fil quand sa pull request est fusionnée. Les pull requests fermées sont toujours closes automatiquement.",
+  "9677fb95de88518a": "Clôt un fil quand sa pull request est fusionnée ou fermée.",
   "ad385f789ba891e3": "Réinitialiser la clôture automatique à la fusion à la valeur par défaut",
   "c60bd348673c77c3": "Les fils de la barre latérale sans activité pendant cette durée sont clos automatiquement.",
   "1f17e629add0ec32": "Réinitialiser la clôture automatique à la valeur par défaut",

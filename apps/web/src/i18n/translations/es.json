@@ -9781,7 +9781,7 @@
   "4df30d44eb0b0728": "Reanuda automáticamente los hilos cuando se restablecen sus límites de uso. Puedes cancelar la reanudación automática en cada hilo.",
   "0769f91ca46e3003": "Pospone los hilos hasta que se restablezcan sus límites de uso. Activa la reanudación automática para que el agente continúe tras el restablecimiento.",
   "7c27e91e75cce7a3": "Resolver automáticamente",
-  "cf6c5aa9b63957e6": "Resuelve un hilo cuando se fusiona su pull request. Las pull requests cerradas se siguen resolviendo automáticamente.",
+  "9677fb95de88518a": "Resuelve un hilo cuando su pull request se fusiona o se cierra.",
   "ad385f789ba891e3": "Restablecer la resolución automática al fusionar al valor predeterminado",
   "c60bd348673c77c3": "Los hilos de la barra lateral sin actividad durante este tiempo se resuelven automáticamente.",
   "1f17e629add0ec32": "Restablecer la resolución automática al valor predeterminado",

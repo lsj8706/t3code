@@ -383,14 +383,15 @@ describe("resolveAutoSettlementAt", () => {
         pullRequest: { state: "merged", mergedAt: DateTime.formatIso(at(-3 * 60 * 60 * 1_000)) },
       }),
     ).toBeNull();
+    const closed = {
+      ...input,
+      thread: shell(),
+      pullRequest: { state: "closed" as const, closedAt: DateTime.formatIso(at(-1)) },
+    };
+    expect(ThreadSettlementService.resolveAutoSettlementAt(closed)).toEqual(shell().createdAt);
     expect(
-      ThreadSettlementService.resolveAutoSettlementAt({
-        ...input,
-        thread: shell(),
-        pullRequest: { state: "closed", closedAt: DateTime.formatIso(at(-1)) },
-        autoSettleOnMerge: false,
-      }),
-    ).toEqual(shell().createdAt);
+      ThreadSettlementService.resolveAutoSettlementAt({ ...closed, autoSettleOnMerge: false }),
+    ).toBeNull();
   });
 
   it("settles on merge after agent-started runs, but not after the user writes again", () => {
