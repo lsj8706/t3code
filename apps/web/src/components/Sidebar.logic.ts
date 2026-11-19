@@ -899,14 +899,15 @@ export function shouldRecedeSidebarThread(input: {
     input.isActive ||
     input.isSelected ||
     input.status === "input" ||
-    input.status === "request"
+    input.status === "request" ||
+    input.status === "approval"
   ) {
     return false;
   }
-  if (input.status === "preparing" || input.status === "working" || input.status === "waiting") {
+  if (input.status === "waiting") {
     return true;
   }
-  if (input.status === "ready" || input.status === "approval") {
+  if (input.status === "ready") {
     return !input.isUnread && !input.isWoke;
   }
   return false;
