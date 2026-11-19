@@ -24,7 +24,7 @@ export interface WorktreeFolder extends Project {
 
 export function groupSidebarThreadsByWorktree<
   T extends Pick<SidebarThreadSummary, "environmentId" | "projectId" | "worktreePath">,
->(projects: readonly Project[], threads: readonly T[]) {
+>(projects: readonly Project[], threads: readonly T[], unlisted: readonly T[] = []) {
   const folders = new Map<string, { group: WorktreeFolder; threads: T[] }>();
   const projectByRef = new Map<string, Project>();
   function addFolder(project: Project, worktreePath: string | null) {
@@ -52,13 +52,15 @@ export function groupSidebarThreadsByWorktree<
     for (const ref of group.memberProjectRefs)
       projectByRef.set(scopedProjectKey(ref), group.representative);
   }
-  for (const thread of threads) {
+  function folderFor(thread: T) {
     const owner = projectByRef.get(scopedProjectKey(thread));
-    if (!owner) continue;
+    if (!owner) return undefined;
     const path = thread.worktreePath || owner.workspaceRoot;
-    const key = worktreeFolderKey(thread.environmentId, path);
-    (folders.get(key) ?? addFolder(owner, path)).threads.push(thread);
+    return folders.get(worktreeFolderKey(thread.environmentId, path)) ?? addFolder(owner, path);
   }
+  for (const thread of threads) folderFor(thread)?.threads.push(thread);
+  // A worktree keeps its section while any thread remains, such as a settled one listed elsewhere.
+  for (const thread of unlisted) folderFor(thread);
   return [...folders.values()].filter(
     ({ group, threads }) => threads.length > 0 || (group.archivedAt == null && !group.isScratch),
   );

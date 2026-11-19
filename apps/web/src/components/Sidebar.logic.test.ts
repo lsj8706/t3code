@@ -1691,6 +1691,7 @@ it("groups chats by checkout path across registered projects, branches and envir
       thread("remote", remote, null, "main"),
       thread("unregistered", main, "/trees/feature", "feature"),
     ],
+    [thread("settled", main, "/trees/done", "done"), thread("also-root", main, null, "main")],
   );
   expect(
     folders.map(({ group, threads }) => [
@@ -1704,8 +1705,9 @@ it("groups chats by checkout path across registered projects, branches and envir
     [empty.environmentId, empty.workspaceRoot, []],
     [remote.environmentId, remote.workspaceRoot, ["remote"]],
     [main.environmentId, "/trees/feature", ["unregistered"]],
+    [main.environmentId, "/trees/done", []],
   ]);
-  expect(new Set(folders.map(({ group }) => group.projectKey)).size).toBe(5);
+  expect(new Set(folders.map(({ group }) => group.projectKey)).size).toBe(6);
   const registered = folders[1]!.group;
   const inferred = folders[4]!.group;
   expect(registered.id).toBe(linked.id);

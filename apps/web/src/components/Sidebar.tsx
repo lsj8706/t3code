@@ -554,7 +554,11 @@ function useSidebarThreads(input: {
   const folders =
     input.worktreeProjects !== null
       ? orderItemsByPreferredIds({
-          items: groupSidebarThreadsByWorktree(input.worktreeProjects, activeThreads),
+          items: groupSidebarThreadsByWorktree(
+            input.worktreeProjects,
+            activeThreads,
+            partition.visibleThreads,
+          ),
           preferredIds: worktreeOrder,
           getId: (folder) => folder.group.projectKey,
         })
