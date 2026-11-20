@@ -411,9 +411,9 @@ const SUMMARY: Record<PullRequestWatchChange["kind"], string> = {
 };
 
 const WATCHING_CLOSING =
-  "Look into each item and act on it as your task requires. This PR stays linked and watched, so do not link, watch, or list it again. End your turn when you are done, and T3 Code wakes you on the next change. When you hand the work back to the user, call unwatch_pull_request first so the thread returns to their inbox.";
+  "Look into each item. Unless your task says otherwise, fix what is clear and push it: a failing check, a conflict you can resolve, or a review comment whose request is clear and fits earlier instructions. Before changing code for a comment that could mean more than one thing or asks for an architectural change, ask the user and end your turn. Note items that need no action and move on. This PR stays linked and watched, so do not link, watch, or list it again. End your turn when you are done, and T3 Code wakes you on the next change. When you hand the work back to the user, call unwatch_pull_request first so the thread returns to their inbox.";
 const WATCHING_CLOSING_PLURAL =
-  "Look into each item and act on it as your task requires. Each PR T3 Code still watches stays linked and watched, so do not link, watch, or list them again. End your turn when you are done, and T3 Code wakes you on the next change. When you hand the work back to the user, call unwatch_pull_request for each first so the thread returns to their inbox.";
+  "Look into each item. Unless your task says otherwise, fix what is clear and push it: a failing check, a conflict you can resolve, or a review comment whose request is clear and fits earlier instructions. Before changing code for a comment that could mean more than one thing or asks for an architectural change, ask the user and end your turn. Note items that need no action and move on. Each PR T3 Code still watches stays linked and watched, so do not link, watch, or list them again. End your turn when you are done, and T3 Code wakes you on the next change. When you hand the work back to the user, call unwatch_pull_request for each first so the thread returns to their inbox.";
 
 export interface PullRequestWatchWake {
   readonly text: string;
