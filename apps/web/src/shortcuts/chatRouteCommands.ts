@@ -178,6 +178,7 @@ export function installChatRouteCommands(router: AnyRouter): () => void {
       "preview.zoomOut": previewCommand("zoom-out"),
       "preview.resetZoom": previewCommand("reset-zoom"),
       "preview.find": previewCommand("find"),
+      "preview.toggleDeviceToolbar": previewCommand("toggle-device-toolbar"),
     },
     {
       when: () =>

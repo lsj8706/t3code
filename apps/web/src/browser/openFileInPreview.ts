@@ -30,7 +30,7 @@ import {
   useRightPanelStore,
 } from "~/rightPanelStore";
 
-import { resolveBrowserDefaults } from "./browserDefaults";
+import { browserViewportForUrl, resolveBrowserDefaults } from "./browserDefaults";
 import { msg } from "gt-react";
 import { m } from "~/i18n/messages";
 
@@ -64,6 +64,8 @@ export async function openUrlInPreview<E>(input: {
   readonly openPreview: OpenPreviewMutation<E>;
   readonly profileId?: PreviewOpenInput["profileId"];
   readonly background?: boolean;
+  /** A file the server serves: its address is local, but it is no dev server. */
+  readonly servedFile?: boolean;
 }): Promise<AtomCommandResult<void, E | BrowserSettingsReadError>> {
   // Read before any await: a side chat pane that unmounts meanwhile drops its host mapping.
   const threadRef = rightPanelHostRef(input.threadRef);
@@ -85,7 +87,7 @@ export async function openUrlInPreview<E>(input: {
     input: {
       threadId: threadRef.threadId,
       url: input.url,
-      viewport: defaults.viewport,
+      viewport: input.servedFile ? defaults.viewport : browserViewportForUrl(defaults, input.url),
       profileId: input.profileId ?? defaults.profileId,
       ...(runtime === undefined
         ? {}
@@ -162,5 +164,6 @@ export async function openFileInPreview<AssetError, PreviewError>(input: {
     threadRef: hostRef,
     url: assetUrl,
     openPreview: input.openPreview,
+    servedFile: true,
   });
 }

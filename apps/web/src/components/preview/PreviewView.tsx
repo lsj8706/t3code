@@ -77,7 +77,11 @@ import { PreviewChromeRow } from "./PreviewChromeRow";
 import { PreviewEmptyState } from "./PreviewEmptyState";
 import { PreviewMoreMenu, type PreviewMoreMenuActions } from "./PreviewMoreMenu";
 import { commitBrowserViewportChange } from "~/browser/browserViewportActions";
-import { browserResponsiveViewportForToggle, useBrowserDefaults } from "~/browser/browserDefaults";
+import {
+  browserResponsiveViewportForToggle,
+  browserViewportForFirstNavigation,
+  useBrowserDefaults,
+} from "~/browser/browserDefaults";
 import { BrowserDeviceToolbar } from "~/browser/BrowserDeviceToolbar";
 import { BROWSER_DEVICE_TOOLBAR_HEIGHT } from "~/browser/browserViewportLayout";
 import { useBrowserLayoutZoomFactor } from "~/browser/useBrowserLayoutZoomFactor";
@@ -270,6 +274,15 @@ export function PreviewView({
 
   /** Resolves to the profile of the tab that loaded the URL, or null when nothing opened. */
   const navigateToResolvedUrl = async (resolvedUrl: string) => {
+    const firstViewport =
+      showEmptyState && tabId && runtimeTabId
+        ? browserViewportForFirstNavigation(browserDefaults, viewport, resolvedUrl)
+        : null;
+    if (firstViewport && tabId && runtimeTabId) {
+      void commitBrowserViewportChange({ threadRef, tabId, runtimeTabId }, firstViewport).catch(
+        () => undefined,
+      );
+    }
     if (isServerTab && serverSurfaceRef.current) {
       if (serverInputDisabled) return null;
       serverSurfaceRef.current.navigate(resolvedUrl);
@@ -435,6 +448,7 @@ export function PreviewView({
           ? (serverSurfaceBoxRef.current?.getBoundingClientRect() ?? null)
           : panelRect,
         zoomFactor: isServerTab ? serverZoomFactor : layoutZoomFactor,
+        url,
       }),
     ).catch(() => undefined);
   };
@@ -955,6 +969,9 @@ export function PreviewView({
         case "find":
           handleFind();
           return;
+        case "toggle-device-toolbar":
+          handleToggleDeviceToolbar();
+          return;
         case "toggle-panel":
           return;
       }
@@ -972,6 +989,7 @@ export function PreviewView({
       if (action === "preview.zoomOut") onPreviewAction("zoom-out");
       if (action === "preview.resetZoom") onPreviewAction("reset-zoom");
       if (action === "preview.find") onPreviewAction("find");
+      if (action === "preview.toggleDeviceToolbar") onPreviewAction("toggle-device-toolbar");
     });
     return () => {
       unsubscribeAction();
@@ -1050,6 +1068,11 @@ export function PreviewView({
               findShortcutLabel={shortcutLabelForCommand(keybindings, "preview.find", {
                 context: { previewFocus: true },
               })}
+              deviceToolbarShortcutLabel={shortcutLabelForCommand(
+                keybindings,
+                "preview.toggleDeviceToolbar",
+                { context: { previewFocus: true } },
+              )}
               zoomFactor={
                 serverOwnsRendering ? serverZoomFactor : (desktopOverlay?.zoomFactor ?? 1)
               }

@@ -59,6 +59,7 @@ const PREVIEW_FORWARDED_COMMANDS = [
   "preview.zoomOut",
   "preview.resetZoom",
   "preview.find",
+  "preview.toggleDeviceToolbar",
 ] as const;
 
 const isGlobalPullRequests = (ref: ScopedThreadRef) =>

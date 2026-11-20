@@ -52,6 +52,7 @@ interface Props {
   nativePictureInPicture: boolean;
   profileName: string | undefined;
   findShortcutLabel?: string | null;
+  deviceToolbarShortcutLabel?: string | null;
   move?: { readonly label: string; readonly onMove: () => void };
 }
 
@@ -92,6 +93,7 @@ export function PreviewMoreMenu({
   nativePictureInPicture,
   profileName,
   findShortcutLabel,
+  deviceToolbarShortcutLabel,
   move,
 }: Props) {
   const gt = useGT();
@@ -126,6 +128,9 @@ export function PreviewMoreMenu({
         {move ? <MenuItem onClick={move.onMove}>{move.label}</MenuItem> : null}
         <MenuItem onClick={onToggleDeviceToolbar} disabled={disabled}>
           {deviceToolbarVisible ? gt("Hide device toolbar") : gt("Show device toolbar")}
+          {deviceToolbarShortcutLabel ? (
+            <MenuShortcut>{deviceToolbarShortcutLabel}</MenuShortcut>
+          ) : null}
         </MenuItem>
         <MenuSub>
           <MenuSubTrigger disabled={disabled}>

@@ -123,6 +123,7 @@ import type { ImportOutcome } from "./browserImportWizard.logic";
 
 const FILL_VALUE = "fill";
 const RESPONSIVE_VALUE = "responsive";
+const SAME_AS_DEFAULT_VALUE = "same-as-default";
 
 type BrowserProfileDataBridge = Pick<
   NonNullable<typeof previewBridge>,
@@ -328,43 +329,56 @@ const rotateViewport = (
   height: viewport.width,
 });
 
-function BrowserViewportSetting({ disabled }: { readonly disabled: boolean }) {
+/** `local` edits the viewport for loopback addresses, where null follows the default. */
+function BrowserViewportSetting({
+  disabled,
+  local = false,
+}: {
+  readonly disabled: boolean;
+  readonly local?: boolean;
+}) {
   const searchableSetting = useSearchableSetting();
   const gt = useGT();
   const m = useMessages();
-  const viewport = useClientSettings((settings) => settings.browserDefaultViewport);
+  const viewport = useClientSettings((settings) =>
+    local ? settings.browserLocalDefaultViewport : settings.browserDefaultViewport,
+  );
   const updateSettings = useUpdateScopedSettings();
+  const setViewport = (next: PreviewViewportSetting | null) => {
+    if (local) updateSettings({ browserLocalDefaultViewport: next });
+    else if (next !== null) updateSettings({ browserDefaultViewport: next });
+  };
 
-  const sized = viewport._tag === "fill" ? null : viewport;
+  const sized = viewport === null || viewport._tag === "fill" ? null : viewport;
   const presentedSize = {
     width: sized?.width ?? RESPONSIVE_SEED_SIZE.width,
     height: sized?.height ?? RESPONSIVE_SEED_SIZE.height,
   };
 
   const selectViewport = (value: string | null) => {
+    if (value === SAME_AS_DEFAULT_VALUE) {
+      setViewport(null);
+      return;
+    }
     if (value === FILL_VALUE) {
-      updateSettings({ browserDefaultViewport: FILL_PREVIEW_VIEWPORT });
+      setViewport(FILL_PREVIEW_VIEWPORT);
       return;
     }
     if (value === RESPONSIVE_VALUE) {
-      updateSettings({
-        browserDefaultViewport: {
-          _tag: "freeform",
-          width: sized?.width ?? RESPONSIVE_SEED_SIZE.width,
-          height: sized?.height ?? RESPONSIVE_SEED_SIZE.height,
-        },
+      setViewport({
+        _tag: "freeform",
+        width: sized?.width ?? RESPONSIVE_SEED_SIZE.width,
+        height: sized?.height ?? RESPONSIVE_SEED_SIZE.height,
       });
       return;
     }
     const preset = PREVIEW_VIEWPORT_PRESETS.find((candidate) => candidate.id === value);
     if (!preset) return;
-    updateSettings({
-      browserDefaultViewport: {
-        _tag: "preset",
-        width: preset.width,
-        height: preset.height,
-        presetId: preset.id,
-      },
+    setViewport({
+      _tag: "preset",
+      width: preset.width,
+      height: preset.height,
+      presetId: preset.id,
     });
   };
 
@@ -374,39 +388,57 @@ function BrowserViewportSetting({ disabled }: { readonly disabled: boolean }) {
     const next = { ...presentedSize, [axis]: value };
     if (next.width * next.height > PREVIEW_VIEWPORT_MAX_AREA) return;
     if (sized && next.width === sized.width && next.height === sized.height) return;
-    updateSettings({ browserDefaultViewport: { _tag: "freeform", ...next } });
+    setViewport({ _tag: "freeform", ...next });
   };
 
   return (
     <SettingsRow
-      {...searchableSetting("browser-default-viewport")}
+      {...searchableSetting(local ? "browser-local-default-viewport" : "browser-default-viewport")}
       devicePreference
-      description={gt(
-        "Tab size for you and agents. Fill fits the panel; other sizes show the device toolbar.",
-      )}
+      description={
+        local
+          ? gt(
+              "Tab size for localhost addresses, where dev servers run. Same as default uses the default viewport.",
+            )
+          : gt(
+              "Tab size for you and agents. Fill fits the panel; other sizes show the device toolbar.",
+            )
+      }
       resetAction={
-        !disabled && viewport._tag !== DEFAULT_BROWSER_VIEWPORT._tag ? (
+        disabled ? null : local ? (
+          viewport === null ? null : (
+            <SettingResetButton
+              ariaLabel={gt("Reset local address viewport to default")}
+              onClick={() => setViewport(null)}
+            />
+          )
+        ) : viewport?._tag !== DEFAULT_BROWSER_VIEWPORT._tag ? (
           <SettingResetButton
             ariaLabel={gt("Reset default browser viewport to default")}
-            onClick={() => updateSettings({ browserDefaultViewport: DEFAULT_BROWSER_VIEWPORT })}
+            onClick={() => setViewport(DEFAULT_BROWSER_VIEWPORT)}
           />
         ) : null
       }
       control={
         <div className="flex w-full flex-wrap items-center justify-end gap-2 sm:w-auto">
           <Select
-            value={viewportSelectValue(viewport)}
+            value={viewport === null ? SAME_AS_DEFAULT_VALUE : viewportSelectValue(viewport)}
             onValueChange={selectViewport}
             disabled={disabled}
           >
             <SelectTrigger
               size="sm"
               className="w-full min-w-0 sm:w-44"
-              aria-label={gt("Default browser viewport")}
+              aria-label={local ? gt("Local address viewport") : gt("Default browser viewport")}
             >
-              <SelectValue>{viewportSelectLabel(viewport, m)}</SelectValue>
+              <SelectValue>
+                {viewport === null ? gt("Same as default") : viewportSelectLabel(viewport, m)}
+              </SelectValue>
             </SelectTrigger>
             <SelectPopup align="end" alignItemWithTrigger={false}>
+              {local ? (
+                <SelectItem value={SAME_AS_DEFAULT_VALUE}>{gt("Same as default")}</SelectItem>
+              ) : null}
               <SelectItem value={FILL_VALUE}>
                 <T>Fill panel</T>
               </SelectItem>
@@ -474,9 +506,7 @@ function BrowserViewportSetting({ disabled }: { readonly disabled: boolean }) {
                           ? gt("Rotate to landscape")
                           : gt("Rotate to portrait")
                       }
-                      onClick={() =>
-                        updateSettings({ browserDefaultViewport: rotateViewport(sized) })
-                      }
+                      onClick={() => setViewport(rotateViewport(sized))}
                     >
                       <ScreenRotationIcon />
                     </Button>
@@ -1707,12 +1737,14 @@ export function BrowserSettingsPanel() {
         <AdvancedSettings
           targetIds={[
             searchableSetting("browser-default-viewport").id,
+            searchableSetting("browser-local-default-viewport").id,
             searchableSetting("browser-default-zoom").id,
             searchableSetting("browser-default-appearance").id,
           ]}
         >
           <SettingsUnavailableGroup message={desktopOnlyMessage}>
             <BrowserViewportSetting disabled={desktopOnly} />
+            <BrowserViewportSetting disabled={desktopOnly} local />
             <BrowserZoomSetting disabled={desktopOnly} />
             <BrowserAppearanceSetting disabled={desktopOnly} />
           </SettingsUnavailableGroup>

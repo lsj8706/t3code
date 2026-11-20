@@ -22,7 +22,8 @@ const browserDefaultsMocks = vi.hoisted(() => ({
   resolve: vi.fn(),
 }));
 
-vi.mock("~/browser/browserDefaults", () => ({
+vi.mock(import("~/browser/browserDefaults"), async (original) => ({
+  ...(await original()),
   resolveBrowserDefaults: browserDefaultsMocks.resolve,
 }));
 
@@ -37,6 +38,7 @@ vi.mock("~/browser/browserLinkTarget", () => ({
 
 const hydratedDefaults = {
   viewport: { _tag: "fixed", width: 1280, height: 720 } as const,
+  localViewport: null,
   profileId: "work",
   zoomFactor: 0.8,
   appearance: "dark",

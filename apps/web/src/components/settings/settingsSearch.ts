@@ -1138,6 +1138,12 @@ export const SETTINGS_SEARCH_ITEMS = [
     searchTerms: [msg("preview size width height device desktop mobile rotate")],
   },
   {
+    id: "browser-local-default-viewport",
+    title: msg("Local address viewport"),
+    to: "/settings/browser",
+    searchTerms: [msg("localhost dev server webview responsive device toolbar mobile")],
+  },
+  {
     id: "browser-default-zoom",
     title: msg("Default browser zoom"),
     to: "/settings/browser",

@@ -424,6 +424,10 @@ export const ClientSettingsSchema = Schema.Struct({
   browserDefaultViewport: PreviewViewportSetting.pipe(
     Schema.withDecodingDefault(Effect.succeed(DEFAULT_BROWSER_VIEWPORT)),
   ),
+  // Null follows browserDefaultViewport.
+  browserLocalDefaultViewport: Schema.NullOr(PreviewViewportSetting).pipe(
+    Schema.withDecodingDefault(Effect.succeed(null)),
+  ),
   browserDefaultZoomFactor: PreviewZoomFactor.pipe(
     Schema.withDecodingDefault(Effect.succeed(DEFAULT_PREVIEW_ZOOM_FACTOR)),
   ),
@@ -2058,6 +2062,7 @@ export const ClientSettingsPatch = Schema.Struct({
   appearanceContrast: Schema.optionalKey(AppearanceContrast),
   panelAnimationDurationMs: Schema.optionalKey(PanelAnimationDurationMs),
   browserDefaultViewport: Schema.optionalKey(PreviewViewportSetting),
+  browserLocalDefaultViewport: Schema.optionalKey(Schema.NullOr(PreviewViewportSetting)),
   browserDefaultZoomFactor: Schema.optionalKey(PreviewZoomFactor),
   browserDefaultAppearance: Schema.optionalKey(PreviewAppearancePreference),
   browserRecordingFrameRate: Schema.optionalKey(BrowserRecordingFrameRate),

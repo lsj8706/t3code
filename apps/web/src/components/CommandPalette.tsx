@@ -76,6 +76,7 @@ import {
   PaletteIcon,
   RotateCcwIcon,
   SettingsIcon,
+  SmartphoneIcon,
   MonitorIcon,
   PinIcon,
   PinOffIcon,
@@ -1418,6 +1419,17 @@ function OpenCommandPaletteDialog(props: {
       shortcutCommand: "preview.find",
       run: async () => {
         dispatchPreviewAction("find");
+      },
+    });
+    actionItems.push({
+      kind: "action",
+      value: "toggle-browser-device-toolbar",
+      title: gt("Toggle device toolbar in browser"),
+      searchTerms: ["device", "toolbar", "responsive", "mobile", "viewport", "browser", "preview"],
+      icon: <SmartphoneIcon className={ITEM_ICON_CLASS} />,
+      shortcutCommand: "preview.toggleDeviceToolbar",
+      run: async () => {
+        dispatchPreviewAction("toggle-device-toolbar");
       },
     });
   }

@@ -118,6 +118,7 @@ export function getChangedTypographySettingLabels(
 export type BrowserDefaultSettings = Pick<
   UnifiedSettings,
   | "browserDefaultViewport"
+  | "browserLocalDefaultViewport"
   | "browserDefaultZoomFactor"
   | "browserDefaultAppearance"
   | "browserRecordingFrameRate"
@@ -153,6 +154,9 @@ export function getChangedBrowserSettingLabels(
     )
       ? []
       : [resolve(msg("Browser viewport"))]),
+    ...(settings.browserLocalDefaultViewport === null
+      ? []
+      : [resolve(msg("Local address viewport"))]),
     ...(settings.browserDefaultZoomFactor !== DEFAULT_UNIFIED_SETTINGS.browserDefaultZoomFactor
       ? [resolve(msg("Browser zoom"))]
       : []),

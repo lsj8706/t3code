@@ -45,6 +45,7 @@ const mocks = vi.hoisted(() => ({
 
 const STUB_BROWSER_DEFAULTS = {
   viewport: FILL_PREVIEW_VIEWPORT,
+  localViewport: null,
   zoomFactor: DEFAULT_PREVIEW_ZOOM_FACTOR,
   appearance: DEFAULT_PREVIEW_APPEARANCE,
   autoShowFloatingPreview: true,
@@ -400,7 +401,7 @@ describe("PreviewView", () => {
     const rect = surface.element().getBoundingClientRect();
 
     await userEvent.click(page.getByRole("button", { name: "Preview menu" }));
-    await userEvent.click(page.getByRole("menuitem", { name: "Show device toolbar" }));
+    await userEvent.click(page.getByRole("menuitem", { name: /^Show device toolbar/ }));
 
     expect(commitBrowserViewportChange).toHaveBeenCalledWith(expect.anything(), {
       _tag: "freeform",

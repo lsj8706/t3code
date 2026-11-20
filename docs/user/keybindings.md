@@ -30,7 +30,8 @@ When a thread has queued messages, `mod+Shift+Enter` sends the first one as a st
 while a turn is running, or as a new turn when the thread is stopped. Change it under
 **Queue: Send First Queued Message** in Keybindings.
 
-Use `mod+shift+m` to choose a model and `mod+shift+h` to choose a host.
+Use `mod+shift+m` to choose a model and `mod+shift+h` to choose a host. With the
+in-app browser focused, `mod+shift+m` shows or hides its device toolbar instead.
 To step a new thread to the next machine instead of opening the menu, bind
 **Composer: Cycle Host** in Keybindings. It has no default shortcut.
 Use `mod+shift+e` for effort, `mod+shift+a` for permissions, `mod+shift+x` for the
