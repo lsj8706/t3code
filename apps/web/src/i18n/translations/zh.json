@@ -4005,7 +4005,6 @@
   "276c29ef2d344c50": "合并",
   "be85261ec6428209": "正在合并…",
   "981f06e0ae41a346": "合并此 {term, select, mr {MR} cr {change request} other {PR}}（{method, select, merge {合并} squash {压缩合并} rebase {变基} fastForward {快进} other {合并}}）",
-  "087d8cedc3ea219d": "停止关注 #{number}",
   "f3ae1947e800fdb2": "合并 {term, select, mr {merge request} cr {change request} other {pull request}}？",
   "1567df8ab4aaac42": "这会使用{method, select, merge {合并} squash {压缩合并} rebase {变基} fastForward {快进} other {合并}}方式合并 #{number}。",
   "636eb97a97862aef": [
@@ -4017,7 +4016,7 @@
     },
     " 存在合并冲突"
   ],
-  "159ddd0d146a0f22": "关注中：检查完成、有人评论或分支出现冲突时，智能体会被唤醒。点击停止关注。",
+  "1fddacb691df18e7": "检查完成、有人评论或分支出现冲突时，代理会唤醒并处理。",
   "1cbc8b5db51b4c77": "合并",
   "43c5fbd02c6f330a": "收起",
   "de45b075b016cb14": [

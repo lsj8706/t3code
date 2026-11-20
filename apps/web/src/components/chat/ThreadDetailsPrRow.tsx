@@ -73,12 +73,11 @@ import {
 import { Button } from "../ui/button";
 import { Spinner } from "../ui/spinner";
 import { toastManager } from "../ui/toast";
+import { Switch } from "../ui/switch";
 import { Tooltip, TooltipPopup, TooltipTrigger } from "../ui/tooltip";
 import {
   THREAD_DETAILS_PANEL_ICON_CLASS,
   THREAD_DETAILS_PANEL_LABEL_CLASS,
-  THREAD_DETAILS_PANEL_SPLIT_GROUP_CLASS,
-  THREAD_DETAILS_PANEL_SPLIT_SEPARATOR_CLASS,
 } from "./threadDetailsPanelStyles";
 
 // A null checks response is settled; polling cannot find checks.
@@ -95,7 +94,7 @@ export function ThreadDetailsPrRow({
   label,
   onOpen,
   onActed,
-  onStopWatching,
+  watch,
   composerTarget,
 }: {
   environmentId: EnvironmentId;
@@ -107,7 +106,10 @@ export function ThreadDetailsPrRow({
   label: string;
   onOpen: (event: ReactMouseEvent<HTMLElement>) => void;
   onActed?: () => void;
-  onStopWatching?: (() => void) | undefined;
+  /** Present when this thread can watch the pull request for changes. */
+  watch?:
+    | { readonly watching: boolean; readonly onChange: (watching: boolean) => void }
+    | undefined;
   /** Fix and Resolve write here instead of checking the pull request out in a new thread. */
   composerTarget?: ComposerThreadTarget | undefined;
 }) {
@@ -450,40 +452,36 @@ export function ThreadDetailsPrRow({
               }
             : null;
 
-  const watching =
-    onStopWatching !== undefined && (detail?.state ?? pr?.state ?? "open") === "open";
-  const watchControl = (part: "secondary" | "icon") =>
-    watching ? (
+  const watchRow =
+    watch !== undefined && (detail?.state ?? pr?.state ?? "open") === "open" ? (
       <Tooltip>
         <TooltipTrigger
           render={
             <ThreadDetailsControl
-              type="button"
+              render={<label />}
               variant="ghost"
               size="sm"
-              part={part}
-              className="group/watch"
-              aria-label={gt("Stop watching #{number}", { number })}
-              onClick={onStopWatching}
+              part="row"
+              className="active:scale-100"
             />
           }
         >
-          <EyeIcon
-            aria-hidden
-            className={cn(part === "icon" ? "size-3.5" : "size-4", "group-hover/watch:hidden")}
-          />
-          <EyeOffIcon
-            aria-hidden
-            className={cn(
-              part === "icon" ? "size-3.5" : "size-4",
-              "hidden group-hover/watch:block",
-            )}
-          />
+          {watch.watching ? (
+            <EyeIcon aria-hidden className="size-4 shrink-0" />
+          ) : (
+            <EyeOffIcon aria-hidden className={THREAD_DETAILS_PANEL_ICON_CLASS} />
+          )}
+          <span
+            className={cn("min-w-0 flex-1 truncate text-left", THREAD_DETAILS_PANEL_LABEL_CLASS)}
+          >
+            {gt("Watch for changes")}
+          </span>
+          <Switch size="sm" checked={watch.watching} onCheckedChange={watch.onChange} />
         </TooltipTrigger>
         <TooltipPopup side="top">
           <T>
-            Watching: the agent wakes when checks finish, someone comments, or the branch conflicts.
-            Click to stop.
+            The agent wakes and responds when checks finish, someone comments, or the branch
+            conflicts.
           </T>
         </TooltipPopup>
       </Tooltip>
@@ -525,7 +523,7 @@ export function ThreadDetailsPrRow({
 
   return (
     <>
-      {detail !== null && (showChecks || trailingAction !== null || watching) ? (
+      {detail !== null && (showChecks || trailingAction !== null) ? (
         <div className="pb-1.5">
           {openRow(detail.title, "row", true)}
           <div className="flex h-5 min-w-0 items-center gap-0.5 ps-9 pe-2.5 text-xs text-muted-foreground">
@@ -540,7 +538,6 @@ export function ThreadDetailsPrRow({
                 render={<ThreadDetailsControl part="meta" className="min-w-0 shrink" />}
               />
             ) : null}
-            {watchControl("icon")}
             <span className="flex-1" />
             {trailingAction ? (
               <Tooltip>
@@ -565,15 +562,10 @@ export function ThreadDetailsPrRow({
             ) : null}
           </div>
         </div>
-      ) : watching ? (
-        <div className={THREAD_DETAILS_PANEL_SPLIT_GROUP_CLASS}>
-          {openRow(label, "primary")}
-          <span aria-hidden="true" className={THREAD_DETAILS_PANEL_SPLIT_SEPARATOR_CLASS} />
-          {watchControl("secondary")}
-        </div>
       ) : (
         openRow(label, "row")
       )}
+      {watchRow}
       {rowAction === "merge" ? (
         <AlertDialog open={confirmingMerge} onOpenChange={(open) => setConfirmingMerge(open)}>
           <AlertDialogPopup>

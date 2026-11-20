@@ -4000,7 +4000,6 @@
   "276c29ef2d344c50": "Merga",
   "be85261ec6428209": "Mergar...",
   "981f06e0ae41a346": "Merga den här {term, select, mr {merge requesten} cr {ändringsbegäran} other {pull requesten}} ({method, select, merge {merge} squash {squash} rebase {rebase} fastForward {fast-forward} other {merge}})",
-  "087d8cedc3ea219d": "Sluta bevaka #{number}",
   "f3ae1947e800fdb2": "Merga {term, select, mr {merge requesten} cr {ändringsbegäran} other {pull requesten}}?",
   "1567df8ab4aaac42": "Det här mergar #{number} med {method, select, merge {merge} squash {squash} rebase {rebase} fastForward {fast-forward} other {merge}}.",
   "636eb97a97862aef": [
@@ -4011,7 +4010,7 @@
       "v": "v"
     }
   ],
-  "159ddd0d146a0f22": "Bevakar: agenten vaknar när kontrollerna är klara, någon kommenterar eller grenen får konflikter. Klicka för att sluta.",
+  "1fddacb691df18e7": "Agenten vaknar och svarar när kontroller blir klara, någon kommenterar eller grenen får en konflikt.",
   "1cbc8b5db51b4c77": "Merga",
   "43c5fbd02c6f330a": "Visa mindre",
   "de45b075b016cb14": [

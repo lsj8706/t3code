@@ -3999,7 +3999,6 @@
   "276c29ef2d344c50": "Fusionar",
   "be85261ec6428209": "Fusionando...",
   "981f06e0ae41a346": "Fusionar esta {term, select, mr {merge request} cr {solicitud de cambios} other {pull request}} ({method, select, merge {merge} squash {squash} rebase {rebase} fastForward {fast-forward} other {merge}})",
-  "087d8cedc3ea219d": "Dejar de seguir #{number}",
   "f3ae1947e800fdb2": "¿Fusionar la {term, select, mr {merge request} cr {solicitud de cambios} other {pull request}}?",
   "1567df8ab4aaac42": "Esto fusiona #{number} con {method, select, merge {merge} squash {squash} rebase {rebase} fastForward {fast-forward} other {merge}}.",
   "636eb97a97862aef": [
@@ -4010,7 +4009,7 @@
       "v": "v"
     }
   ],
-  "159ddd0d146a0f22": "Siguiendo: el agente se activa cuando terminan las comprobaciones, alguien comenta o la rama tiene conflictos. Haz clic para dejar de seguir.",
+  "1fddacb691df18e7": "El agente se activa y responde cuando terminan las comprobaciones, alguien comenta o la rama entra en conflicto.",
   "1cbc8b5db51b4c77": "Fusionar",
   "43c5fbd02c6f330a": "Mostrar menos",
   "de45b075b016cb14": [

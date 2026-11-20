@@ -18,13 +18,14 @@ import { ChevronDownIcon, ChevronUpIcon } from "lucide-react";
 import { useState, type ComponentProps, type MouseEvent as ReactMouseEvent } from "react";
 
 import { sourceControlClients } from "@t3tools/client-runtime/source-control-clients";
+import { canStartThreadPullRequestWatch } from "@t3tools/client-runtime/thread-pull-request-compatibility";
 import {
   findProjectForChangeRequest,
   findProjectOnChangeRequestHost,
 } from "@t3tools/client-runtime/change-request-links";
 
 import type { ComposerThreadTarget } from "~/composerDraftStore";
-import { useProjects, useQuietThreadShell } from "~/state/entities";
+import { useProjects, useQuietThreadShell, useServerConfigs } from "~/state/entities";
 import { threadEnvironment } from "~/state/threads";
 import { useAtomCommand } from "~/state/use-atom-command";
 
@@ -42,14 +43,14 @@ function ThreadDetailsPrLinkRow({
   link,
   onOpen,
   onActed,
-  onStopWatching,
+  watch,
   composerTarget,
 }: {
   environmentId: EnvironmentId;
   link: ThreadPullRequestLink;
   onOpen: (event: ReactMouseEvent<HTMLElement>) => void;
   onActed?: (() => void) | undefined;
-  onStopWatching?: (() => void) | undefined;
+  watch?: ComponentProps<typeof ThreadDetailsPrRow>["watch"];
   composerTarget?: ComposerThreadTarget | undefined;
 }) {
   const m = useMessages();
@@ -74,7 +75,7 @@ function ThreadDetailsPrLinkRow({
       project={project}
       label={`#${link.number}${link.snapshot === null ? "" : `: ${link.snapshot.title}`}`}
       onOpen={onOpen}
-      onStopWatching={onStopWatching}
+      watch={watch}
       composerTarget={composerTarget}
       {...(onActed ? { onActed } : {})}
     />
@@ -94,22 +95,30 @@ function ThreadDetailsPrRows({
   onOpenLink: (event: ReactMouseEvent<HTMLElement>, url: string) => void;
 }) {
   const [expanded, setExpanded] = useState(false);
-  const watch = useAtomCommand(threadEnvironment.watchPullRequest, { reportFailure: true });
-  const stopWatching = (link: ThreadPullRequestLink | null) =>
-    link?.watch === undefined
+  const setWatching = useAtomCommand(threadEnvironment.watchPullRequest, { reportFailure: true });
+  const thread = useQuietThreadShell(threadRef);
+  const supportsWatch =
+    useServerConfigs().get(threadRef.environmentId)?.environment.capabilities
+      .threadPullRequestWatch === true;
+  const canStartWatch = thread !== null && canStartThreadPullRequestWatch(thread);
+  const watchFor = (link: ThreadPullRequestLink | null) =>
+    link === null || !supportsWatch || (link.watch === undefined && !canStartWatch)
       ? undefined
-      : () =>
-          void watch({
-            environmentId: threadRef.environmentId,
-            input: {
-              threadId: threadRef.threadId,
-              host: link.host,
-              repository: link.repository,
-              number: link.number,
-              watching: false,
-            },
-          });
-  const currentRow = <ThreadDetailsPrRow {...row} onStopWatching={stopWatching(currentLink)} />;
+      : {
+          watching: link.watch !== undefined,
+          onChange: (watching: boolean) =>
+            void setWatching({
+              environmentId: threadRef.environmentId,
+              input: {
+                threadId: threadRef.threadId,
+                host: link.host,
+                repository: link.repository,
+                number: link.number,
+                watching,
+              },
+            }),
+        };
+  const currentRow = <ThreadDetailsPrRow {...row} watch={watchFor(currentLink)} />;
   const rest =
     currentLink === null
       ? []
@@ -130,7 +139,7 @@ function ThreadDetailsPrRows({
               link={link}
               onOpen={(event) => onOpenLink(event, link.url)}
               onActed={row.onActed}
-              onStopWatching={stopWatching(link)}
+              watch={watchFor(link)}
               composerTarget={row.composerTarget}
             />
           ))}

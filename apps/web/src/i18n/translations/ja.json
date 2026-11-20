@@ -3990,7 +3990,6 @@
   "276c29ef2d344c50": "マージ",
   "be85261ec6428209": "マージしています...",
   "981f06e0ae41a346": "{term, select, mr {このマージリクエストをマージ ({method, select, merge {マージ} squash {スカッシュ} rebase {リベース} fastForward {早送り} other {マージ}})} cr {この変更リクエストをマージ ({method, select, merge {マージ} squash {スカッシュ} rebase {リベース} fastForward {早送り} other {マージ}})} other {このプルリクエストをマージ ({method, select, merge {マージ} squash {スカッシュ} rebase {リベース} fastForward {早送り} other {マージ}})}}",
-  "087d8cedc3ea219d": "#{number} の監視を停止",
   "f3ae1947e800fdb2": "{term, select, mr {マージリクエストをマージしますか？} cr {変更リクエストをマージしますか？} other {プルリクエストをマージしますか？}}",
   "1567df8ab4aaac42": "#{number} を{method, select, merge {マージ} squash {スカッシュ} rebase {リベース} fastForward {早送り} other {マージ}}でマージします。",
   "636eb97a97862aef": [
@@ -4001,7 +4000,7 @@
     },
     " とのマージ競合"
   ],
-  "159ddd0d146a0f22": "監視中: チェックの完了、コメントの追加、ブランチの競合が発生するとエージェントが起動します。クリックすると停止します。",
+  "1fddacb691df18e7": "チェックの完了、コメントの追加、ブランチの競合が発生すると、エージェントが起動して対応します。",
   "1cbc8b5db51b4c77": "マージ",
   "43c5fbd02c6f330a": "表示を減らす",
   "de45b075b016cb14": [

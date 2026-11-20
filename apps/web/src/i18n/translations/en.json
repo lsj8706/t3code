@@ -4001,7 +4001,6 @@
   "276c29ef2d344c50": "Merge",
   "be85261ec6428209": "Merging...",
   "981f06e0ae41a346": "Merge this {term, select, mr {merge request} cr {change request} other {pull request}} ({method, select, merge {merge} squash {squash} rebase {rebase} fastForward {fast-forward} other {merge}})",
-  "087d8cedc3ea219d": "Stop watching #{number}",
   "f3ae1947e800fdb2": "Merge {term, select, mr {merge request} cr {change request} other {pull request}}?",
   "1567df8ab4aaac42": "This merges #{number} using {method, select, merge {merge} squash {squash} rebase {rebase} fastForward {fast-forward} other {merge}}.",
   "636eb97a97862aef": [
@@ -4012,7 +4011,7 @@
       "v": "v"
     }
   ],
-  "159ddd0d146a0f22": "Watching: the agent wakes when checks finish, someone comments, or the branch conflicts. Click to stop.",
+  "1fddacb691df18e7": "The agent wakes and responds when checks finish, someone comments, or the branch conflicts.",
   "1cbc8b5db51b4c77": "Merge",
   "43c5fbd02c6f330a": "Show less",
   "de45b075b016cb14": [

@@ -4000,7 +4000,6 @@
   "276c29ef2d344c50": "Fusionner",
   "be85261ec6428209": "Fusion...",
   "981f06e0ae41a346": "Fusionner cette {term, select, mr {merge request} cr {demande de modification} other {pull request}} ({method, select, merge {merge} squash {squash} rebase {rebase} fastForward {fast-forward} other {merge}})",
-  "087d8cedc3ea219d": "Arrêter de surveiller #{number}",
   "f3ae1947e800fdb2": "Fusionner la {term, select, mr {merge request} cr {demande de modification} other {pull request}} ?",
   "1567df8ab4aaac42": "Cette action fusionne #{number} avec {method, select, merge {merge} squash {squash} rebase {rebase} fastForward {fast-forward} other {merge}}.",
   "636eb97a97862aef": [
@@ -4011,7 +4010,7 @@
       "v": "v"
     }
   ],
-  "159ddd0d146a0f22": "Surveillance : l’agent se réveille quand les checks se terminent, que quelqu’un commente ou que la branche entre en conflit. Cliquez pour arrêter.",
+  "1fddacb691df18e7": "L’agent se réveille et réagit quand les vérifications se terminent, que quelqu’un commente ou que la branche entre en conflit.",
   "1cbc8b5db51b4c77": "Fusionner",
   "43c5fbd02c6f330a": "Afficher moins",
   "de45b075b016cb14": [

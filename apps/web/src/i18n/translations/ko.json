@@ -3988,7 +3988,6 @@
   "276c29ef2d344c50": "병합",
   "be85261ec6428209": "병합하는 중...",
   "981f06e0ae41a346": "이 {term, select, mr {병합 요청} cr {변경 요청} other {풀 리퀘스트}} 병합({method, select, merge {병합} squash {스쿼시} rebase {리베이스} fastForward {빨리 감기} other {병합}})",
-  "087d8cedc3ea219d": "#{number} 지켜보기 중지",
   "f3ae1947e800fdb2": "{term, select, mr {병합 요청을} cr {변경 요청을} other {풀 리퀘스트를}} 병합할까요?",
   "1567df8ab4aaac42": "#{number}을(를) {method, select, merge {병합} squash {스쿼시} rebase {리베이스} fastForward {빨리 감기} other {병합}} 방식으로 병합합니다.",
   "636eb97a97862aef": [
@@ -3999,7 +3998,7 @@
     },
     "와(과) 병합 충돌"
   ],
-  "159ddd0d146a0f22": "지켜보는 중: 검사가 끝나거나, 누군가 댓글을 달거나, 브랜치가 충돌하면 에이전트가 깨어납니다. 클릭하여 중지하세요.",
+  "1fddacb691df18e7": "검사가 끝나거나, 누군가 댓글을 달거나, 브랜치가 충돌하면 에이전트가 깨어나 대응합니다.",
   "1cbc8b5db51b4c77": "병합",
   "43c5fbd02c6f330a": "간략히 보기",
   "de45b075b016cb14": [

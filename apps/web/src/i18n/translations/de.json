@@ -4003,7 +4003,6 @@
   "276c29ef2d344c50": "Mergen",
   "be85261ec6428209": "Wird gemergt...",
   "981f06e0ae41a346": "{term, select, mr {Diesen Merge Request mergen ({method, select, merge {Merge} squash {Squash} rebase {Rebase} fastForward {Fast-Forward} other {Merge}})} cr {Diese Änderungsanfrage mergen ({method, select, merge {Merge} squash {Squash} rebase {Rebase} fastForward {Fast-Forward} other {Merge}})} other {Diesen Pull Request mergen ({method, select, merge {Merge} squash {Squash} rebase {Rebase} fastForward {Fast-Forward} other {Merge}})}}",
-  "087d8cedc3ea219d": "Beobachtung von #{number} beenden",
   "f3ae1947e800fdb2": "{term, select, mr {Merge Request mergen?} cr {Änderungsanfrage mergen?} other {Pull Request mergen?}}",
   "1567df8ab4aaac42": "Dadurch wird #{number} per {method, select, merge {Merge} squash {Squash} rebase {Rebase} fastForward {Fast-Forward} other {Merge}} zusammengeführt.",
   "636eb97a97862aef": [
@@ -4014,7 +4013,7 @@
       "v": "v"
     }
   ],
-  "159ddd0d146a0f22": "Beobachtet: Der Agent wird geweckt, wenn Checks fertig sind, jemand kommentiert oder der Branch Konflikte hat. Klicke zum Beenden.",
+  "1fddacb691df18e7": "Der Agent wird aktiv und reagiert, wenn Checks abgeschlossen sind, jemand kommentiert oder der Branch in Konflikt gerät.",
   "1cbc8b5db51b4c77": "Mergen",
   "43c5fbd02c6f330a": "Weniger anzeigen",
   "de45b075b016cb14": [

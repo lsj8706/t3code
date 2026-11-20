@@ -4000,7 +4000,6 @@
   "276c29ef2d344c50": "Mesclar",
   "be85261ec6428209": "Mesclando...",
   "981f06e0ae41a346": "Mesclar {term, select, mr {este merge request} cr {esta solicitação de alteração} other {este pull request}} ({method, select, merge {merge} squash {squash} rebase {rebase} fastForward {fast-forward} other {merge}})",
-  "087d8cedc3ea219d": "Parar de acompanhar #{number}",
   "f3ae1947e800fdb2": "Mesclar {term, select, mr {o merge request} cr {a solicitação de alteração} other {o pull request}}?",
   "1567df8ab4aaac42": "Isso mescla o #{number} usando {method, select, merge {merge} squash {squash} rebase {rebase} fastForward {fast-forward} other {merge}}.",
   "636eb97a97862aef": [
@@ -4011,7 +4010,7 @@
       "v": "v"
     }
   ],
-  "159ddd0d146a0f22": "Acompanhando: o agente é ativado quando as verificações terminam, alguém comenta ou o branch entra em conflito. Clique para parar.",
+  "1fddacb691df18e7": "O agente desperta e responde quando as verificações terminam, alguém comenta ou o branch entra em conflito.",
   "1cbc8b5db51b4c77": "Mesclar",
   "43c5fbd02c6f330a": "Mostrar menos",
   "de45b075b016cb14": [
