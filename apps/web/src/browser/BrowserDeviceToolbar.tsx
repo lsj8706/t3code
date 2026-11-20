@@ -1,11 +1,12 @@
 import {
+  type DesktopPreviewColorScheme,
   PREVIEW_VIEWPORT_MAX_AREA,
   PREVIEW_VIEWPORT_MAX_DIMENSION,
   PREVIEW_VIEWPORT_MIN_DIMENSION,
   type PreviewViewportSetting,
 } from "@t3tools/contracts";
 import { PREVIEW_VIEWPORT_PRESETS, resolvePreviewViewport } from "@t3tools/shared/previewViewport";
-import { Link2, Unlink2, X } from "lucide-react";
+import { Link2, MoonIcon, SunIcon, Unlink2, X } from "lucide-react";
 import { useState } from "react";
 import { msg, T, useGT, useMessages } from "gt-react";
 
@@ -42,6 +43,11 @@ interface Props {
   readonly aspectRatio: number | null;
   readonly onAspectRatioChange: (aspectRatio: number | null) => void;
   readonly onChange: (setting: PreviewViewportSetting) => Promise<void>;
+  readonly appearance?: {
+    /** Whether the page renders dark now, with "system" already resolved by the caller. */
+    readonly dark: boolean;
+    readonly onChange: (colorScheme: DesktopPreviewColorScheme) => void;
+  };
 }
 
 export function BrowserDeviceToolbar({
@@ -50,9 +56,11 @@ export function BrowserDeviceToolbar({
   aspectRatio,
   onAspectRatioChange,
   onChange,
+  appearance,
 }: Props) {
   const gt = useGT();
   const m = useMessages();
+  const pageDark = appearance?.dark === true;
   const [pending, setPending] = useState(false);
   const [customSize, setCustomSize] = useState<{
     readonly width: string;
@@ -332,6 +340,30 @@ export function BrowserDeviceToolbar({
       >
         <ScreenRotationIcon />
       </Button>
+      {appearance ? (
+        <Tooltip>
+          <TooltipTrigger
+            render={
+              <Button
+                variant="ghost"
+                size="icon-xs"
+                type="button"
+                aria-label={
+                  pageDark
+                    ? gt("Switch page to light appearance")
+                    : gt("Switch page to dark appearance")
+                }
+                onClick={() => appearance.onChange(pageDark ? "light" : "dark")}
+              />
+            }
+          >
+            {pageDark ? <SunIcon /> : <MoonIcon />}
+          </TooltipTrigger>
+          <TooltipPopup side="top">
+            {pageDark ? <T>Light appearance</T> : <T>Dark appearance</T>}
+          </TooltipPopup>
+        </Tooltip>
+      ) : null}
       <span className="sticky right-0 ml-auto flex bg-background/95">
         <Button
           variant="ghost"

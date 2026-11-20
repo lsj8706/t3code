@@ -13,6 +13,7 @@ import {
 } from "~/components/preview/thumbButtons";
 import { usePreviewBridge } from "~/components/preview/usePreviewBridge";
 import { useClientSettingsHydrated } from "~/hooks/useSettings";
+import { useTheme } from "~/hooks/useTheme";
 import { cn, isMacPlatform } from "~/lib/utils";
 
 import { resolveBrowserSurfacePanelRect, useBrowserSurfaceStore } from "./browserSurfaceStore";
@@ -29,6 +30,7 @@ import { acquireDesktopTab, type AcquiredDesktopTab, withDesktopTab } from "./de
 import { resolveHostedBrowserWebviewWrapperStyle } from "./hostedBrowserWebviewStyle";
 import { usePreviewWebviewConfig } from "./previewWebviewConfigState";
 import { useBrowserLayoutZoomFactor } from "./useBrowserLayoutZoomFactor";
+import { useBrowserTabColorScheme } from "./useBrowserTabColorScheme";
 import { useBrowserViewportResize } from "./useBrowserViewportResize";
 import {
   INITIAL_WEBVIEW_CRASH_RECOVERY_STATE,
@@ -108,6 +110,13 @@ export function HostedBrowserWebview(props: {
   usePreviewBridge({ threadRef, tabId, runtimeTabId, serverDriven });
 
   const serverColorScheme = serverRendering?.colorScheme;
+  const { resolvedTheme } = useTheme();
+  const { colorScheme, setColorScheme } = useBrowserTabColorScheme({
+    threadRef,
+    tabId,
+    runtimeTabId,
+    serverColorScheme,
+  });
   const serverZoomFactor = serverRendering?.zoomFactor;
 
   // oxlint-disable-next-line t3code/no-unreasoned-state-sync -- leases the desktop preview tab for this webview and releases it on cleanup
@@ -371,6 +380,12 @@ export function HostedBrowserWebview(props: {
             aspectRatio={lockedAspectRatio}
             onAspectRatioChange={handleAspectRatioChange}
             onChange={commitViewportChange}
+            appearance={{
+              // Electron resolves "system" from the app's own appearance.
+              dark:
+                colorScheme === "dark" || (colorScheme === "system" && resolvedTheme === "dark"),
+              onChange: setColorScheme,
+            }}
           />
         ) : null}
         <div

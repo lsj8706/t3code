@@ -1105,6 +1105,11 @@ export function PreviewView({
                       setting,
                     )
                   }
+                  appearance={{
+                    // The server's browser renders "system" light.
+                    dark: snapshot.colorScheme === "dark",
+                    onChange: (colorScheme) => void adjustServerTab({ colorScheme }),
+                  }}
                 />
               </div>
             ) : null}
